@@ -1,7 +1,7 @@
 "use client";
 
 import { GlassCard } from "@/components/ui/GlassCard";
-import { Play, X, Loader2 } from "lucide-react";
+import { Play, X, Loader2, Zap } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";

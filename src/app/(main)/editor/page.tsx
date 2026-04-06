@@ -36,6 +36,7 @@ import {
 import { createClient } from "@/lib/supabase-client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 const ICON_OPTIONS = ["⚡", "🚀", "🎯", "🔧", "🌐", "📱", "🔔", "📸", "🗺️", "🎵", "🤖", "✨", "🔐", "📊", "💡", "🎮"];
 
@@ -57,6 +58,7 @@ export default function EditorPage() {
   } = useEditorStore();
 
   const [showSimulator, setShowSimulator] = useState(false);
+  const [showSaveConfirm, setShowSaveConfirm] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set(["scripting"]));
@@ -108,16 +110,16 @@ export default function EditorPage() {
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = async (silent = false) => {
     if (actions.length === 0) {
       toast.error("Add at least one action first");
-      return;
+      return false;
     }
     setIsSaving(true);
     try {
       const supabase = createClient();
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { toast.error("Not authenticated"); return; }
+      if (!user) { toast.error("Not authenticated"); return false; }
 
       const payload = {
         user_id: user.id,
@@ -131,17 +133,35 @@ export default function EditorPage() {
       if (shortcutId) {
         const { error } = await supabase.from("shortcuts").update(payload).eq("id", shortcutId);
         if (error) throw error;
-        toast.success("Shortcut updated!");
+        if (!silent) toast.success("Shortcut updated!");
       } else {
         const { data, error } = await supabase.from("shortcuts").insert(payload).select("id").single();
         if (error) throw error;
         setShortcutId(data.id);
-        toast.success("Shortcut saved!");
+        if (!silent) toast.success("Shortcut saved!");
       }
+      return true;
     } catch (e: any) {
       toast.error(e.message ?? "Save failed");
+      return false;
     } finally {
-      setIsSaving(false);
+      setIsSaving(true); // Keep spinner until we explicitly clear or wait for state sync
+      setTimeout(() => setIsSaving(false), 500);
+    }
+  };
+
+  const handlePreviewClick = () => {
+    if (isDirty) {
+        setShowSaveConfirm(true);
+    } else {
+        setShowSimulator(true);
+    }
+  };
+
+  const handleConfirmSaveAndPreview = async () => {
+    const success = await handleSave(true);
+    if (success) {
+        setShowSimulator(true);
     }
   };
 
@@ -209,14 +229,14 @@ export default function EditorPage() {
 
           <div className="flex items-center gap-3">
             <button
-                onClick={() => setShowSimulator(true)}
+                onClick={handlePreviewClick}
                 disabled={actions.length === 0}
                 className="flex items-center gap-2 rounded-sm border border-[#e2e8f0] dark:border-[#313d4a] py-2.5 px-6 font-bold text-[#1c2434] dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all text-sm uppercase tracking-wider"
             >
                 <Play size={16} fill="currentColor" /> Preview
             </button>
             <button
-                onClick={handleSave}
+                onClick={() => handleSave()}
                 disabled={isSaveDisabled}
                 className="flex items-center gap-2 rounded-sm bg-[#3c50e0] py-2.5 px-6 font-bold text-white hover:bg-opacity-90 disabled:opacity-50 transition-all text-sm uppercase tracking-wider shadow-lg shadow-indigo-500/20"
             >
@@ -365,6 +385,17 @@ export default function EditorPage() {
           onClose={() => setShowSimulator(false)}
         />
       )}
+
+      <ConfirmationModal
+        isOpen={showSaveConfirm}
+        onClose={() => setShowSaveConfirm(false)}
+        onConfirm={handleConfirmSaveAndPreview}
+        title="Unsaved Changes"
+        message="Simulating requires the latest version of your shortcut. Would you like to save your changes and start the simulation?"
+        confirmLabel="Save & Preview"
+        cancelLabel="Discard Changes"
+        isDanger={false}
+      />
     </div>
   );
 }
