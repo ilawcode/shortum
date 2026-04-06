@@ -1,6 +1,5 @@
 "use client";
 
-import { GlassCard } from "@/components/ui/GlassCard";
 import {
   DndContext,
   closestCenter,
@@ -27,6 +26,7 @@ import {
   ChevronRight,
   Loader2,
   Pencil,
+  Zap,
 } from "lucide-react";
 import {
   ACTIONS_LIBRARY,
@@ -35,6 +35,7 @@ import {
 } from "@/lib/actions-library";
 import { createClient } from "@/lib/supabase-client";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 const ICON_OPTIONS = ["⚡", "🚀", "🎯", "🔧", "🌐", "📱", "🔔", "📸", "🗺️", "🎵", "🤖", "✨", "🔐", "📊", "💡", "🎮"];
 
@@ -148,212 +149,213 @@ export default function EditorPage() {
   const isSaveDisabled = actions.length === 0 || hasErrors || isSaving;
 
   return (
-    <div className="h-screen w-full flex flex-col overflow-hidden">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between px-6 py-3 border-b border-white/5 bg-background/50 backdrop-blur-sm flex-shrink-0">
-        <div className="flex items-center gap-3">
-          {/* Icon Picker */}
-          <div className="relative">
-            <button
-              onClick={() => setShowIconPicker((v) => !v)}
-              className="text-2xl w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center hover:bg-indigo-500/30 transition-colors"
-            >
-              {shortcutIcon}
-            </button>
-            {showIconPicker && (
-              <div className="absolute top-12 left-0 z-50 bg-slate-900 border border-white/10 rounded-xl p-3 grid grid-cols-4 gap-2 shadow-2xl">
-                {ICON_OPTIONS.map((icon) => (
-                  <button
-                    key={icon}
-                    onClick={() => { setShortcutIcon(icon); setShowIconPicker(false); }}
-                    className="w-9 h-9 text-xl flex items-center justify-center rounded-lg hover:bg-white/10 transition-colors"
-                  >
-                    {icon}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Editable Title */}
-          {editingTitle ? (
-            <input
-              autoFocus
-              value={shortcutTitle}
-              onChange={(e) => setShortcutTitle(e.target.value)}
-              onBlur={() => setEditingTitle(false)}
-              onKeyDown={(e) => e.key === "Enter" && setEditingTitle(false)}
-              className="bg-transparent border-b border-indigo-500 text-lg font-bold text-slate-900 dark:text-white outline-none px-1"
-            />
-          ) : (
-            <button
-              onClick={() => setEditingTitle(true)}
-              className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
-            >
-              {shortcutTitle}
-              <Pencil size={14} className="text-slate-400 dark:text-slate-500" />
-            </button>
-          )}
-
-          <span className="text-xs text-slate-500 bg-white/5 rounded-full px-2 py-0.5">
-            {actions.length} action{actions.length !== 1 ? "s" : ""}
-          </span>
-          {isDirty && <span className="text-xs text-amber-400">● Unsaved</span>}
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowSimulator(true)}
-            disabled={actions.length === 0}
-            className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-500/20 hover:bg-slate-200 dark:hover:bg-slate-500/30 disabled:opacity-40 text-slate-700 dark:text-white transition-colors flex items-center gap-2 border border-slate-200 dark:border-transparent"
-          >
-            <Play size={16} /> Simulate
-          </button>
-          <button
-            onClick={handleSave}
-            disabled={isSaveDisabled}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-indigo-500 hover:bg-indigo-600 disabled:opacity-40 disabled:cursor-not-allowed text-white transition-colors flex items-center gap-2"
-          >
-            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-            {isSaving ? "Saving..." : "Save Shortcut"}
-          </button>
-        </div>
-      </div>
-
-      <div className="flex-1 flex min-h-0">
-        {/* Canvas */}
-        <div className="flex-1 overflow-y-auto p-6">
-          {/* Description Input */}
-          <input
-            value={shortcutDescription}
-            onChange={(e) => setShortcutDescription(e.target.value)}
-            placeholder="Add a short description (optional)..."
-            className="w-full max-w-2xl mx-auto block mb-6 bg-transparent border-b border-slate-200 dark:border-white/20 text-slate-600 dark:text-slate-200 text-sm outline-none pb-1 focus:border-indigo-500 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500"
-          />
-
-          <DndContext
-            sensors={sensors}
-            collisionDetection={closestCenter}
-            onDragEnd={handleDragEnd}
-          >
-            <SortableContext items={actions} strategy={verticalListSortingStrategy}>
-              <div className="flex flex-col gap-4 max-w-2xl mx-auto pb-32">
-                {actions.length === 0 ? (
-                  <div className="text-center mt-32 text-slate-500 space-y-4">
-                    <div className="text-6xl">⚡</div>
-                    <p className="text-lg font-medium text-slate-400">Your canvas is empty</p>
-                    <p className="text-sm">Browse the action library on the right and click to add actions.</p>
-                  </div>
-                ) : (
-                  actions.map((action) => (
-                    <ActionCard key={action.id} action={action} />
-                  ))
-                )}
-              </div>
-            </SortableContext>
-          </DndContext>
-        </div>
-
-        {/* Action Library Panel */}
-        <div className="w-72 xl:w-80 flex-shrink-0 flex flex-col border-l border-white/5 bg-background/30">
-          {/* Search */}
-          <div className="p-4 border-b border-white/5">
+    <div className="h-screen w-full flex flex-col overflow-hidden bg-[#f1f5f9] dark:bg-[#1c2434]">
+      {/* TailAdmin Header */}
+      <header className="sticky top-0 z-40 flex w-full bg-white dark:bg-[#24303f] drop-shadow-1 dark:drop-shadow-none border-b border-[#e2e8f0] dark:border-[#313d4a] px-6 py-4 flex-shrink-0">
+        <div className="flex flex-grow items-center justify-between">
+          <div className="flex items-center gap-4">
+             {/* Icon Picker */}
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              <input
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search actions..."
-                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm"
-              />
+                <button
+                onClick={() => setShowIconPicker((v) => !v)}
+                className="text-2xl w-11 h-11 rounded-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-white/5 flex items-center justify-center hover:bg-slate-100 transition-all shadow-sm"
+                >
+                {shortcutIcon}
+                </button>
+                {showIconPicker && (
+                <div className="absolute top-14 left-0 z-50 bg-white dark:bg-[#24303f] border border-[#e2e8f0] dark:border-[#313d4a] rounded-sm p-4 grid grid-cols-4 gap-3 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                    {ICON_OPTIONS.map((icon) => (
+                    <button
+                        key={icon}
+                        onClick={() => { setShortcutIcon(icon); setShowIconPicker(false); }}
+                        className="w-10 h-10 text-xl flex items-center justify-center rounded-sm hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                        {icon}
+                    </button>
+                    ))}
+                </div>
+                )}
+            </div>
+
+            <div className="flex flex-col">
+                {editingTitle ? (
+                    <input
+                    autoFocus
+                    value={shortcutTitle}
+                    onChange={(e) => setShortcutTitle(e.target.value)}
+                    onBlur={() => setEditingTitle(false)}
+                    onKeyDown={(e) => e.key === "Enter" && setEditingTitle(false)}
+                    className="bg-transparent border-b-2 border-[#3c50e0] text-xl font-black text-[#1c2434] dark:text-white outline-none"
+                    />
+                ) : (
+                    <button
+                    onClick={() => setEditingTitle(true)}
+                    className="flex items-center gap-2 text-xl font-black text-[#1c2434] dark:text-white hover:text-[#3c50e0] transition-colors"
+                    >
+                    {shortcutTitle}
+                    <Pencil size={16} className="text-slate-400" />
+                    </button>
+                )}
+                <div className="flex items-center gap-3 mt-1">
+                    <span className="text-[10px] font-black uppercase tracking-widest text-[#3c50e0] bg-[#3c50e0]/10 px-2 py-0.5 rounded-sm">
+                        {actions.length} Actions
+                    </span>
+                    {isDirty && <span className="text-[10px] font-black uppercase tracking-widest text-amber-600 flex items-center gap-1">
+                        <span className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse" /> Unsaved
+                    </span>}
+                </div>
             </div>
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="px-4 py-2 flex gap-2 overflow-x-auto border-b border-white/5 flex-shrink-0">
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => setSelectedCategory(null)}
-              className={`text-xs px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
-                selectedCategory === null
-                  ? "bg-indigo-500 text-white"
-                  : "bg-white/5 text-slate-400 hover:bg-white/10"
-              }`}
+                onClick={() => setShowSimulator(true)}
+                disabled={actions.length === 0}
+                className="flex items-center gap-2 rounded-sm border border-[#e2e8f0] dark:border-[#313d4a] py-2.5 px-6 font-bold text-[#1c2434] dark:text-white hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 transition-all text-sm uppercase tracking-wider"
             >
-              All
+                <Play size={16} fill="currentColor" /> Preview
             </button>
-            {ACTION_CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
-                className={`text-xs px-3 py-1 rounded-full whitespace-nowrap transition-colors ${
-                  selectedCategory === cat.id
-                    ? "text-white"
-                    : "bg-white/5 text-slate-400 hover:bg-white/10"
-                }`}
-                style={selectedCategory === cat.id ? { backgroundColor: cat.color } : {}}
-              >
-                {cat.icon} {cat.label}
-              </button>
-            ))}
+            <button
+                onClick={handleSave}
+                disabled={isSaveDisabled}
+                className="flex items-center gap-2 rounded-sm bg-[#3c50e0] py-2.5 px-6 font-bold text-white hover:bg-opacity-90 disabled:opacity-50 transition-all text-sm uppercase tracking-wider shadow-lg shadow-indigo-500/20"
+            >
+                {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} strokeWidth={3} />}
+                {isSaving ? "Saving..." : "Publish"}
+            </button>
           </div>
+        </div>
+      </header>
 
-          {/* Grouped Action List */}
-          <div className="flex-1 overflow-y-auto">
-            {Object.entries(groupedActions).map(([catId, catActions]) => {
-              const category = ACTION_CATEGORIES.find((c) => c.id === catId);
-              const isExpanded = expandedCategories.has(catId) || !!searchQuery;
-              return (
-                <div key={catId}>
-                  <button
-                    onClick={() => toggleCategory(catId)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
-                  >
-                    <span>
-                      {category?.icon} {category?.label ?? catId}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">
-                        {catActions.length}
-                      </span>
-                      {isExpanded ? (
-                        <ChevronDown size={14} />
-                      ) : (
-                        <ChevronRight size={14} />
-                      )}
+      <div className="flex-1 flex min-h-0">
+        {/* Main Canvas Area */}
+        <div className="flex-1 overflow-y-auto px-6 py-10">
+          <div className="max-w-3xl mx-auto space-y-8">
+             {/* Description Panel */}
+            <div className="panel-card p-6 bg-white dark:bg-[#24303f]">
+                <label className="text-xs font-black uppercase tracking-[0.2em] text-[#8a99af] mb-3 block">Shortcut Description</label>
+                <textarea
+                    value={shortcutDescription}
+                    onChange={(e) => setShortcutDescription(e.target.value)}
+                    placeholder="Enter what this shortcut does for future reference..."
+                    className="w-full bg-transparent border-none text-[#1c2434] dark:text-[#dee4ee] font-medium outline-none resize-none h-16 placeholder:text-slate-400"
+                />
+            </div>
+
+            <DndContext
+                sensors={sensors}
+                collisionDetection={closestCenter}
+                onDragEnd={handleDragEnd}
+            >
+                <SortableContext items={actions} strategy={verticalListSortingStrategy}>
+                <div className="flex flex-col gap-6 pb-40">
+                    {actions.length === 0 ? (
+                    <div className="panel-card bg-white dark:bg-[#24303f] p-20 text-center flex flex-col items-center justify-center border-dashed border-2 border-[#e2e8f0] dark:border-[#313d4a]">
+                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-6">
+                            <Zap size={40} className="text-[#3c50e0]" />
+                        </div>
+                        <h3 className="text-xl font-bold text-[#1c2434] dark:text-white mb-2">Build Your Workflow</h3>
+                        <p className="text-slate-500 text-sm max-w-sm">Select actions from the library panel on the right to start creating your shortcut factory.</p>
                     </div>
-                  </button>
-                  {isExpanded && (
-                    <div className="pb-2">
-                      {catActions.map((action) => (
-                        <button
-                          key={action.type}
-                          onClick={() => addActionFromDefinition(action)}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group border-l-2 border-transparent hover:border-indigo-500"
-                        >
-                          <span className="text-xl w-7 text-center flex-shrink-0">
-                            {action.icon}
-                          </span>
-                          <div className="min-w-0">
-                            <div className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-white transition-colors truncate">
-                              {action.label}
-                            </div>
-                            <div className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 truncate mt-0.5 font-medium">
-                              {action.description}
-                            </div>
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  )}
+                    ) : (
+                    actions.map((action) => (
+                        <ActionCard key={action.id} action={action} />
+                    ))
+                    )}
                 </div>
-              );
-            })}
-            {Object.keys(groupedActions).length === 0 && (
-              <div className="text-center py-12 text-slate-500 text-sm">
-                No actions found
-              </div>
-            )}
+                </SortableContext>
+            </DndContext>
           </div>
+        </div>
+
+        {/* Action Library - TailAdmin Styled Sidebar */}
+        <div className="w-80 xl:w-96 flex-shrink-0 flex flex-col bg-white dark:bg-[#24303f] border-l border-[#e2e8f0] dark:border-[#313d4a]">
+            <div className="p-6 border-b border-[#e2e8f0] dark:border-[#313d4a]">
+                <h2 className="text-lg font-black text-[#1c2434] dark:text-white uppercase tracking-tighter mb-4">Action Library</h2>
+                <div className="relative">
+                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8a99af]" />
+                    <input
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        placeholder="Filter tools..."
+                        className="w-full bg-[#f1f5f9] dark:bg-slate-800 border-none rounded-sm pl-11 pr-4 py-3 text-sm text-[#1c2434] dark:text-[#dee4ee] outline-none focus:ring-2 focus:ring-[#3c50e0]/20 transition-all"
+                    />
+                </div>
+            </div>
+
+            {/* Category Filter */}
+            <div className="flex flex-wrap gap-2 p-4 bg-slate-50 dark:bg-[#1a222c] border-b border-[#e2e8f0] dark:border-[#313d4a]">
+                <button
+                onClick={() => setSelectedCategory(null)}
+                className={cn(
+                    "px-3 py-1.5 rounded-sm text-xs font-bold transition-all uppercase tracking-wider",
+                    selectedCategory === null
+                    ? "bg-[#3c50e0] text-white"
+                    : "bg-white dark:bg-[#24303f] border border-[#e2e8f0] dark:border-[#313d4a] text-slate-500 hover:text-[#3c50e0]"
+                )}
+                >
+                All
+                </button>
+                {ACTION_CATEGORIES.map((cat) => (
+                <button
+                    key={cat.id}
+                    onClick={() => setSelectedCategory(selectedCategory === cat.id ? null : cat.id)}
+                    className={cn(
+                        "px-3 py-1.5 rounded-sm text-xs font-bold transition-all uppercase tracking-wider border",
+                        selectedCategory === cat.id
+                        ? "text-white shadow-sm"
+                        : "bg-white dark:bg-[#24303f] border-[#e2e8f0] dark:border-[#313d4a] text-slate-500 hover:text-[#3c50e0]"
+                    )}
+                    style={selectedCategory === cat.id ? { backgroundColor: cat.color, borderColor: cat.color } : {}}
+                >
+                    {cat.label}
+                </button>
+                ))}
+            </div>
+
+            <div className="flex-1 overflow-y-auto scrollbar-hide py-2">
+                {Object.entries(groupedActions).map(([catId, catActions]) => {
+                const category = ACTION_CATEGORIES.find((c) => c.id === catId);
+                const isExpanded = expandedCategories.has(catId) || !!searchQuery;
+                return (
+                    <div key={catId}>
+                    <button
+                        onClick={() => toggleCategory(catId)}
+                        className="w-full flex items-center justify-between px-6 py-4 text-xs font-black text-[#8a99af] uppercase tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
+                    >
+                        <span>{category?.label ?? catId}</span>
+                        <div className="flex items-center gap-3">
+                        <span className="text-slate-400 font-bold">{catActions.length}</span>
+                        {isExpanded ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                        </div>
+                    </button>
+                    {isExpanded && (
+                        <div className="bg-slate-50/50 dark:bg-black/5 divide-y divide-white/5">
+                        {catActions.map((action) => (
+                            <button
+                            key={action.type}
+                            onClick={() => addActionFromDefinition(action)}
+                            className="w-full flex items-center gap-4 px-6 py-5 hover:bg-white dark:hover:bg-[#333a48] transition-all text-left group border-l-4 border-transparent hover:border-[#3c50e0]"
+                            >
+                            <span className="text-2xl w-10 h-10 bg-white dark:bg-slate-800 rounded-sm flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform flex-shrink-0">
+                                {action.icon}
+                            </span>
+                            <div className="min-w-0">
+                                <div className="text-sm font-bold text-[#1c2434] dark:text-white truncate">
+                                {action.label}
+                                </div>
+                                <div className="text-xs text-slate-500 dark:text-[#8a99af] truncate mt-0.5">
+                                {action.description}
+                                </div>
+                            </div>
+                            </button>
+                        ))}
+                        </div>
+                    )}
+                    </div>
+                );
+                })}
+            </div>
         </div>
       </div>
 

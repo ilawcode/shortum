@@ -1,246 +1,216 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PlusCircle, Pencil, Trash2, Share2, Loader2, Zap } from "lucide-react";
 import { createClient } from "@/lib/supabase-client";
-import { toast } from "sonner";
+import { Shortcut } from "@/store/useEditorStore";
+import { Loader2, Plus, Zap, Pencil, Trash2, Share2, Search, Filter } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEditorStore } from "@/store/useEditorStore";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
-
-interface Shortcut {
-  id: string;
-  title: string;
-  icon: string;
-  color: string;
-  description: string;
-  content_json: any[];
-  is_public: boolean;
-  download_count: number;
-  created_at: string;
-  updated_at: string;
-}
-
-function timeAgo(dateStr: string) {
-  const diff = Date.now() - new Date(dateStr).getTime();
-  const mins = Math.floor(diff / 60000);
-  if (mins < 1) return "just now";
-  if (mins < 60) return `${mins}m ago`;
-  const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h ago`;
-  const days = Math.floor(hrs / 24);
-  return `${days}d ago`;
-}
 
 export default function DashboardPage() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const router = useRouter();
-  const { loadShortcut, resetEditor } = useEditorStore();
-
-  const fetchShortcuts = async () => {
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("shortcuts")
-      .select("*")
-      .order("updated_at", { ascending: false });
-
-    if (error) {
-      toast.error("Could not load shortcuts");
-    } else {
-      setShortcuts(data ?? []);
-    }
-    setLoading(false);
-  };
+  const supabase = createClient();
 
   useEffect(() => {
     fetchShortcuts();
   }, []);
 
-  const handleEdit = (sc: Shortcut) => {
-    loadShortcut(sc.id, sc.title, sc.icon, sc.description, sc.content_json);
-    router.push("/editor");
+  const fetchShortcuts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("shortcuts")
+        .select("*")
+        .order("updated_at", { ascending: false });
+
+      if (error) throw error;
+      setShortcuts(data || []);
+    } catch (e: any) {
+      toast.error("Failed to load shortcuts");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleNew = () => {
-    resetEditor();
-    router.push("/editor");
+  const handleEdit = (shortcut: Shortcut) => {
+    router.push(`/editor?id=${shortcut.id}`);
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Delete this shortcut? This cannot be undone.")) return;
+    if (!confirm("Are you sure you want to delete this shortcut?")) return;
     setDeletingId(id);
-    const supabase = createClient();
-    const { error } = await supabase.from("shortcuts").delete().eq("id", id);
-    if (error) {
-      toast.error("Delete failed");
-    } else {
-      toast.success("Shortcut deleted");
+    try {
+      const { error } = await supabase.from("shortcuts").delete().eq("id", id);
+      if (error) throw error;
       setShortcuts((prev) => prev.filter((s) => s.id !== id));
+      toast.success("Shortcut deleted");
+    } catch (e: any) {
+      toast.error("Delete failed");
+    } finally {
+      setDeletingId(null);
     }
-    setDeletingId(null);
   };
 
-  const handleTogglePublic = async (sc: Shortcut) => {
-    const supabase = createClient();
-    const { error } = await supabase
-      .from("shortcuts")
-      .update({ is_public: !sc.is_public })
-      .eq("id", sc.id);
-    if (error) {
-      toast.error("Update failed");
-    } else {
-      toast.success(sc.is_public ? "Shortcut set to private" : "Shortcut is now public");
+  const handleTogglePublic = async (shortcut: Shortcut) => {
+    try {
+      const { error } = await supabase
+        .from("shortcuts")
+        .update({ is_public: !shortcut.is_public })
+        .eq("id", shortcut.id);
+
+      if (error) throw error;
       setShortcuts((prev) =>
-        prev.map((s) => (s.id === sc.id ? { ...s, is_public: !s.is_public } : s))
+        prev.map((s) => (s.id === shortcut.id ? { ...s, is_public: !s.is_public } : s))
       );
+      toast.success(shortcut.is_public ? "Shortcut is now private" : "Shortcut is now public");
+    } catch (e: any) {
+      toast.error("Toggle visibility failed");
     }
   };
 
-  const copyShareLink = (sc: Shortcut) => {
-    const url = `${window.location.origin}/api/s/${sc.id}`;
+  const copyShareLink = (shortcut: Shortcut) => {
+    const url = `${window.location.origin}/api/s/${shortcut.id}`;
     navigator.clipboard.writeText(url);
-    toast.success("Share link copied!");
+    toast.success("External API link copied!");
   };
+
+  const timeAgo = (date: string) => {
+    const seconds = Math.floor((new Date().getTime() - new Date(date).getTime()) / 1000);
+    if (seconds < 60) return "Just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return new Date(date).toLocaleDateString();
+  };
+
+  const filteredShortcuts = shortcuts.filter(s => 
+    s.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    s.description?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8">
-      {/* Header */}
-      <div className="flex items-center justify-between">
+    <div className="p-6 bg-[#f1f5f9] dark:bg-[#1c2434] min-h-screen">
+      {/* Page Header */}
+      <div className="mb-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
-          <p className="text-slate-500 mt-1">
-            {loading ? "Loading..." : `${shortcuts.length} shortcut${shortcuts.length !== 1 ? "s" : ""}`}
-          </p>
+          <h1 className="text-2xl font-black text-[#1c2434] dark:text-white uppercase tracking-tighter">Your Shortcut Factory</h1>
+          <p className="text-[#8a99af] font-medium text-sm mt-1 uppercase tracking-widest text-[10px]">Manage and simulate your automation hub</p>
         </div>
         <button
-          onClick={handleNew}
-          className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-5 py-2.5 rounded-xl transition-colors font-medium shadow-lg shadow-indigo-500/20"
+          onClick={() => router.push("/editor")}
+          className="flex items-center gap-2 bg-[#3c50e0] py-4 px-10 rounded-sm font-black text-white hover:bg-opacity-90 transition-all uppercase tracking-wider text-sm shadow-lg shadow-indigo-500/20 group"
         >
-          <PlusCircle size={18} />
-          New Shortcut
+          <Plus size={20} strokeWidth={3} className="group-hover:scale-125 transition-transform" /> 
+          Spawn New Shortcut
         </button>
       </div>
 
-      {/* Content */}
-      {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <div
-              key={i}
-              className="h-52 rounded-2xl bg-white/5 animate-pulse border border-white/5"
+      {/* Filter and Search Bar */}
+      <div className="panel-card bg-white dark:bg-[#24303f] p-4 mb-8 flex flex-col md:flex-row gap-4">
+        <div className="relative flex-1">
+            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8a99af]" />
+            <input 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search shortcuts..."
+                className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-sm pl-12 pr-4 py-3 text-[#1c2434] dark:text-[#dee4ee] font-medium outline-none focus:ring-2 focus:ring-[#3c50e0]/10 transition-all"
             />
-          ))}
         </div>
-      ) : shortcuts.length === 0 ? (
-        // Empty State
-        <div className="flex flex-col items-center justify-center py-32 text-center space-y-6">
-          <div className="w-20 h-20 rounded-3xl bg-indigo-500/10 flex items-center justify-center text-4xl">
-            ⚡
+        <div className="flex gap-2">
+            <button className="flex items-center gap-2 bg-white dark:bg-[#24303f] border border-[#e2e8f0] dark:border-[#313d4a] px-6 py-3 rounded-sm font-bold text-slate-500 hover:text-[#3c50e0] transition-all text-sm uppercase tracking-wider">
+                <Filter size={16} /> Filter
+            </button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="flex flex-col items-center justify-center py-40 gap-4">
+          <Loader2 className="animate-spin text-[#3c50e0]" size={48} />
+          <p className="text-[#8a99af] font-black uppercase tracking-widest text-xs">Loading Factory Assets...</p>
+        </div>
+      ) : filteredShortcuts.length === 0 ? (
+        <div className="panel-card bg-white dark:bg-[#24303f] py-32 text-center flex flex-col items-center border-dashed border-2 border-[#e2e8f0] dark:border-[#313d4a]">
+          <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mb-8">
+            <Zap size={48} className="text-[#3c50e0]" />
           </div>
-          <div>
-            <h2 className="text-xl font-semibold text-white">No shortcuts yet</h2>
-            <p className="text-slate-500 mt-2 max-w-sm">
-              Build your first iOS shortcut using our visual editor with 80+ available actions.
-            </p>
-          </div>
+          <h2 className="text-2xl font-black text-[#1c2434] dark:text-white uppercase mb-2">No Shortcuts Found</h2>
+          <p className="text-slate-500 max-w-sm mb-8 font-medium">Start your first automation process by spawning a new shortcut from the editor.</p>
           <button
-            onClick={handleNew}
-            className="flex items-center gap-2 bg-indigo-500 hover:bg-indigo-600 text-white px-6 py-3 rounded-xl transition-colors font-medium"
+            onClick={() => router.push("/editor")}
+            className="bg-[#3c50e0] py-4 px-10 rounded-sm font-black text-white hover:bg-opacity-90 transition-all uppercase tracking-wider text-sm shadow-lg shadow-indigo-500/20"
           >
-            <PlusCircle size={18} />
-            Create Your First Shortcut
+            Create New Process
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {shortcuts.map((sc) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {filteredShortcuts.map((sc) => (
             <div
               key={sc.id}
-              className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 hover:border-indigo-600 rounded-2xl p-6 flex flex-col gap-5 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-indigo-600/10"
-              onClick={() => handleEdit(sc)}
+              className="group panel-card bg-white dark:bg-[#24303f] flex flex-col overflow-hidden hover:translate-y-[-4px] duration-300"
             >
-              {/* Header */}
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-4">
+              <div className="p-8 pb-4 flex flex-col items-center text-center">
                   <div
-                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-inner"
-                    style={{ backgroundColor: `${sc.color ?? "#6366f1"}20` }}
+                    className="w-20 h-20 rounded-2xl flex items-center justify-center text-5xl mb-6 shadow-xl transition-transform group-hover:scale-110"
+                    style={{ backgroundColor: `${sc.color ?? "#3c50e0"}15`, color: sc.color ?? "#3c50e0" }}
                   >
                     {sc.icon ?? "⚡"}
                   </div>
-                  <div className="min-w-0">
-                    <h3 className="font-black text-slate-900 dark:text-slate-100 text-lg truncate group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">
-                      {sc.title}
-                    </h3>
-                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400 truncate mt-1 leading-relaxed">
-                      {sc.description || "No description"}
-                    </p>
-                  </div>
+                  <h3 className="font-black text-[#1c2434] dark:text-white text-xl uppercase tracking-tighter truncate w-full group-hover:text-[#3c50e0] transition-colors">
+                    {sc.title}
+                  </h3>
+                  <p className="text-sm font-bold text-[#8a99af] line-clamp-2 mt-3 leading-relaxed min-h-[2.5rem]">
+                    {sc.description || "No process description provided for this shortcut."}
+                  </p>
+              </div>
+
+              {/* Stats & Metadata */}
+              <div className="px-8 py-4 bg-slate-50 dark:bg-[#24303f] border-y border-[#e2e8f0] dark:border-[#313d4a] flex items-center justify-between text-[10px] font-black uppercase tracking-widest">
+                <div className="flex items-center gap-2 text-[#3c50e0]">
+                  <Zap size={14} fill="currentColor" />
+                  {sc.content_json?.length ?? 0} Steps
                 </div>
-                {sc.is_public && (
-                  <span className="text-[10px] uppercase font-black tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 rounded-lg flex-shrink-0">
-                    Public
-                  </span>
-                )}
+                <div className="text-[#8a99af]">
+                  {timeAgo(sc.updated_at)}
+                </div>
               </div>
 
-              {/* Stats */}
-              <div className="flex items-center gap-5 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
-                  <Zap size={14} className="text-indigo-600 dark:text-indigo-400" />
-                  {sc.content_json?.length ?? 0} actions
-                </span>
-                <span className="text-slate-500">{timeAgo(sc.updated_at)}</span>
-                {sc.download_count > 0 && (
-                  <span className="text-slate-600 dark:text-slate-400">{sc.download_count} downloads</span>
-                )}
-              </div>
-
-              {/* Action Strip */}
-              <div
-                className="flex items-center gap-2 pt-4 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <button
-                  onClick={() => handleEdit(sc)}
-                  className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 px-4 py-2 rounded-xl transition-all border border-slate-200 dark:border-transparent"
-                >
-                  <Pencil size={14} /> Edit
-                </button>
-                <button
-                  onClick={() => handleTogglePublic(sc)}
-                  className={cn(
-                    "flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition-all border dark:border-transparent",
-                    sc.is_public
-                      ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
-                      : "text-slate-600 dark:text-slate-300 hover:text-white bg-slate-50 dark:bg-white/5 border-slate-200"
-                  )}
-                >
-                  <Share2 size={14} />
-                  {sc.is_public ? "Private" : "Public"}
-                </button>
-                {sc.is_public && (
+              {/* Action Strip - TailAdmin Style Bottom Bar */}
+              <div className="p-4 bg-white dark:bg-[#24303f] flex items-center gap-2">
                   <button
-                    onClick={() => copyShareLink(sc)}
-                    className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl transition-all border border-slate-200 dark:border-transparent font-black"
+                    onClick={() => handleEdit(sc)}
+                    className="flex-1 flex items-center justify-center gap-2 bg-[#f1f5f9] dark:bg-slate-800 text-[#1c2434] dark:text-white py-2.5 px-4 rounded-sm font-black text-[10px] uppercase tracking-wider hover:bg-[#3c50e0] hover:text-white transition-all transition-duration-300 shadow-sm"
                   >
-                    API
+                    <Pencil size={12} strokeWidth={3} /> Launch
                   </button>
-                )}
-                <button
-                  onClick={() => handleDelete(sc.id)}
-                  disabled={deletingId === sc.id}
-                  className="ml-auto flex items-center gap-2 text-xs font-bold text-red-600/80 hover:text-red-700 bg-red-50 dark:bg-red-500/5 hover:bg-red-100 dark:hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all border border-red-100 dark:border-transparent disabled:opacity-50"
-                >
-                  {deletingId === sc.id ? (
-                    <Loader2 size={14} className="animate-spin" />
-                  ) : (
-                    <Trash2 size={14} />
-                  )}
-                  Delete
-                </button>
+                  <button
+                    onClick={() => handleTogglePublic(sc)}
+                    className={cn(
+                      "flex items-center justify-center p-2.5 rounded-sm transition-all border",
+                      sc.is_public
+                        ? "text-emerald-600 bg-emerald-50 border-emerald-100 hover:bg-emerald-100"
+                        : "text-[#8a99af] bg-slate-50 border-[#e2e8f0] hover:text-[#1c2434]"
+                    )}
+                    title={sc.is_public ? "Public" : "Private"}
+                  >
+                    <Share2 size={16} strokeWidth={3} />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(sc.id)}
+                    disabled={deletingId === sc.id}
+                    className="flex items-center justify-center p-2.5 rounded-sm bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
+                  >
+                    {deletingId === sc.id ? (
+                      <Loader2 size={16} className="animate-spin" />
+                    ) : (
+                      <Trash2 size={16} strokeWidth={3} />
+                    )}
+                  </button>
               </div>
             </div>
           ))}
