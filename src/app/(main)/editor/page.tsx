@@ -228,7 +228,7 @@ export default function EditorPage() {
             value={shortcutDescription}
             onChange={(e) => setShortcutDescription(e.target.value)}
             placeholder="Add a short description (optional)..."
-            className="w-full max-w-2xl mx-auto block mb-6 bg-transparent border-b border-white/10 text-slate-400 text-sm outline-none pb-1 focus:border-indigo-500 transition-colors"
+            className="w-full max-w-2xl mx-auto block mb-6 bg-transparent border-b border-white/20 text-slate-200 text-sm outline-none pb-1 focus:border-indigo-500 transition-colors placeholder:text-slate-500"
           />
 
           <DndContext
@@ -259,12 +259,12 @@ export default function EditorPage() {
           {/* Search */}
           <div className="p-4 border-b border-white/5">
             <div className="relative">
-              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
+              <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
               <input
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search actions..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-9 pr-3 py-2 text-sm text-white outline-none focus:border-indigo-500 transition-colors"
+                className="w-full bg-slate-900 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 outline-none focus:border-indigo-500 transition-all placeholder:text-slate-500 shadow-inner"
               />
             </div>
           </div>
@@ -306,13 +306,13 @@ export default function EditorPage() {
                 <div key={catId}>
                   <button
                     onClick={() => toggleCategory(catId)}
-                    className="w-full flex items-center justify-between px-4 py-2.5 text-xs font-semibold text-slate-400 uppercase tracking-wider hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] hover:bg-white/5 transition-colors"
                   >
                     <span>
                       {category?.icon} {category?.label ?? catId}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-600 normal-case font-normal">
+                      <span className="text-slate-500 normal-case font-medium">
                         {catActions.length}
                       </span>
                       {isExpanded ? (
@@ -328,16 +328,16 @@ export default function EditorPage() {
                         <button
                           key={action.type}
                           onClick={() => addActionFromDefinition(action)}
-                          className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-white/5 transition-colors text-left group"
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-all text-left group border-l-2 border-transparent hover:border-indigo-500"
                         >
-                          <span className="text-lg w-7 text-center flex-shrink-0">
+                          <span className="text-xl w-7 text-center flex-shrink-0">
                             {action.icon}
                           </span>
                           <div className="min-w-0">
-                            <div className="text-sm font-medium text-slate-300 group-hover:text-white transition-colors truncate">
+                            <div className="text-sm font-semibold text-slate-100 group-hover:text-white transition-colors truncate">
                               {action.label}
                             </div>
-                            <div className="text-xs text-slate-500 truncate">
+                            <div className="text-[11px] text-slate-400 group-hover:text-slate-300 truncate mt-0.5">
                               {action.description}
                             </div>
                           </div>

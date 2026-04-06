@@ -158,84 +158,84 @@ export default function DashboardPage() {
           {shortcuts.map((sc) => (
             <div
               key={sc.id}
-              className="group relative bg-white/5 hover:bg-white/8 border border-white/10 hover:border-indigo-500/30 rounded-2xl p-5 flex flex-col gap-4 transition-all duration-200 cursor-pointer"
+              className="group relative bg-slate-900/50 hover:bg-slate-900/80 border border-white/10 hover:border-indigo-500/50 rounded-2xl p-6 flex flex-col gap-5 transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-indigo-500/10"
               onClick={() => handleEdit(sc)}
             >
               {/* Header */}
               <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
                   <div
-                    className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl flex-shrink-0"
-                    style={{ backgroundColor: `${sc.color ?? "#6366f1"}20` }}
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-inner"
+                    style={{ backgroundColor: `${sc.color ?? "#6366f1"}30` }}
                   >
                     {sc.icon ?? "⚡"}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-semibold text-white truncate">{sc.title}</h3>
-                    <p className="text-xs text-slate-500 truncate mt-0.5">
+                    <h3 className="font-bold text-slate-100 text-lg truncate group-hover:text-white transition-colors">{sc.title}</h3>
+                    <p className="text-sm text-slate-400 truncate mt-1 leading-relaxed">
                       {sc.description || "No description"}
                     </p>
                   </div>
                 </div>
                 {sc.is_public && (
-                  <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded-full flex-shrink-0">
+                  <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-lg flex-shrink-0">
                     Public
                   </span>
                 )}
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-4 text-xs text-slate-500">
-                <span className="flex items-center gap-1">
-                  <Zap size={12} />
+              <div className="flex items-center gap-5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-slate-400">
+                  <Zap size={14} className="text-indigo-400" />
                   {sc.content_json?.length ?? 0} actions
                 </span>
-                <span>{timeAgo(sc.updated_at)}</span>
+                <span className="text-slate-500">{timeAgo(sc.updated_at)}</span>
                 {sc.download_count > 0 && (
-                  <span>{sc.download_count} downloads</span>
+                  <span className="text-slate-400">{sc.download_count} downloads</span>
                 )}
               </div>
 
               {/* Action Strip */}
               <div
-                className="flex items-center gap-2 pt-3 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="flex items-center gap-2 pt-4 border-t border-white/5 opacity-0 group-hover:opacity-100 transition-all transform translate-y-2 group-hover:translate-y-0"
                 onClick={(e) => e.stopPropagation()}
               >
                 <button
                   onClick={() => handleEdit(sc)}
-                  className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
+                  className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl transition-all"
                 >
-                  <Pencil size={12} /> Edit
+                  <Pencil size={14} /> Edit
                 </button>
                 <button
                   onClick={() => handleTogglePublic(sc)}
                   className={cn(
-                    "flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors",
+                    "flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl transition-all",
                     sc.is_public
                       ? "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
-                      : "text-slate-400 hover:text-white bg-white/5 hover:bg-white/10"
+                      : "text-slate-300 hover:text-white bg-white/5 hover:bg-white/10"
                   )}
                 >
-                  <Share2 size={12} />
-                  {sc.is_public ? "Make Private" : "Make Public"}
+                  <Share2 size={14} />
+                  {sc.is_public ? "Private" : "Public"}
                 </button>
                 {sc.is_public && (
                   <button
                     onClick={() => copyShareLink(sc)}
-                    className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg transition-colors"
+                    className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl transition-all"
                   >
-                    Copy Link
+                    Copy API
                   </button>
                 )}
                 <button
                   onClick={() => handleDelete(sc.id)}
                   disabled={deletingId === sc.id}
-                  className="ml-auto flex items-center gap-1.5 text-xs text-red-400/60 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                  className="ml-auto flex items-center gap-2 text-xs font-semibold text-red-400/80 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all disabled:opacity-50"
                 >
                   {deletingId === sc.id ? (
-                    <Loader2 size={12} className="animate-spin" />
+                    <Loader2 size={14} className="animate-spin" />
                   ) : (
-                    <Trash2 size={12} />
+                    <Trash2 size={14} />
                   )}
                   Delete
                 </button>
