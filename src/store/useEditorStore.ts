@@ -18,6 +18,18 @@ export interface ShortcutAction {
   outputName?: string;
 }
 
+export interface Shortcut {
+  id: string;
+  title: string;
+  icon: string;
+  description: string;
+  color?: string;
+  content_json: ShortcutAction[];
+  is_public: boolean;
+  download_count: number;
+  updated_at: string;
+}
+
 interface EditorState {
   actions: ShortcutAction[];
   errors: Record<string, string>;
