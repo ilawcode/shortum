@@ -15,6 +15,7 @@ export interface ActionDefinition {
   category: string;
   color: string;
   description: string;
+  hint?: string;     // Usage guideline shown inside the ActionCard
   params: ParamSchema[];
   outputType?: string;
   isBlock?: boolean;
@@ -41,6 +42,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Creates a text value',
+    hint: 'Bir metin değeri üretir. Çıktısını bir sonraki action\'a aktarmak için "Set Variable" ile saklayabilirsiniz. Örneğin: "Merhaba {{name}}" gibi dinamik içerik yazabilirsiniz.',
     params: [
       { name: 'text', label: 'Text Content', type: 'textarea', placeholder: 'Enter text...', required: true },
     ],
@@ -53,6 +55,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Creates a number value',
+    hint: 'Sayısal bir değer üretir. Math & Logic kategorisindeki hesaplama action\'larında girdi olarak kullanmak için "Set Variable" ile kaydedin.',
     params: [
       { name: 'number', label: 'Number', type: 'number', placeholder: '0', required: true },
     ],
@@ -65,6 +68,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Gets the value of a named variable',
+    hint: 'Daha önce "Set Variable" ile kaydettiğiniz bir değişkeni okur. Değişken adı büyük/küçük harf duyarlıdır — kaydettiğinizle aynı yazın. Çıktıyı başka action\'larda girdi olarak kullanabilirsiniz.',
     params: [
       { name: 'variable', label: 'Variable Name', type: 'text', placeholder: 'myVariable', required: true },
     ],
@@ -77,6 +81,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Stores a value in a named variable',
+    hint: 'Bir değeri isimlendirerek saklar. "Variable Name" alanı camelCase olmalıdır (örn. userLocation, apiResult). "Value" alanına doğrudan değer veya önceki bir action\'ın çıktısını girebilirsiniz.',
     params: [
       { name: 'variable', label: 'Variable Name', type: 'text', placeholder: 'myVariable', required: true },
       { name: 'value', label: 'Value', type: 'text', placeholder: 'value or variable reference', required: true },
@@ -89,6 +94,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Conditionally executes actions',
+    hint: 'Koşullu dallanma sağlar. "Input" alanına karşılaştırmak istediğiniz değişken adını yazın, "Condition" ile karşılaştırma türünü seçin. "is empty" / "is not empty" seçeneklerinde "Value" alanı boş bırakılabilir.',
     isBlock: true,
     params: [
       { name: 'input', label: 'Input', type: 'text', placeholder: 'Variable or value', required: true },
@@ -103,6 +109,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Repeats actions a set number of times',
+    hint: 'Belirtilen sayı kadar döngü çalıştırır. Döngü içindeki action\'lar bu kart altına eklenir. Döngü sayacına "Repeat Index" adlı otomatik değişkenle erişebilirsiniz (0\'dan başlar).',
     isBlock: true,
     params: [
       { name: 'count', label: 'Repeat Count', type: 'number', placeholder: '3', required: true },
@@ -115,6 +122,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Pauses execution for a duration',
+    hint: 'Shortcut\'u belirtilen süre kadar duraklatır. Özellikle bir API çağrısından sonra sonucu beklemek veya animasyonlar arası gecikme eklemek için kullanışlıdır.',
     params: [
       { name: 'seconds', label: 'Seconds', type: 'number', placeholder: '1', required: true },
     ],
@@ -126,6 +134,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Shows an alert dialog to the user',
+    hint: 'Kullanıcıya bir popup mesaj gösterir. "Show Cancel Button" açıksa kullanıcı iptal edebilir — iptal edildiğinde shortcut durur. Önemli bildirimler veya onay adımları için kullanın.',
     params: [
       { name: 'title', label: 'Title', type: 'text', placeholder: 'Alert Title', required: true },
       { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Alert message body', required: false },
@@ -139,6 +148,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Shows a system notification',
+    hint: 'Ekranın üstünde görünen bildirim banner\'ı gösterir. Alert\'ten farklı olarak shortcut\'u durdurmaz, arka planda çalışmaya devam eder. Tamamlanma bildirimleri için idealdir.',
     params: [
       { name: 'title', label: 'Title', type: 'text', placeholder: 'Notification Title', required: true },
       { name: 'body', label: 'Body', type: 'textarea', placeholder: 'Notification body', required: false },
@@ -152,6 +162,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Opens a URL in the default browser or app',
+    hint: 'Bir URL\'yi Safari veya ilgili uygulamada açar. Uygulama deep link\'leri de buraya girilebilir (örn. maps://, tel://, mailto:). URL\'yi değişkenden almak için değişken adını girin.',
     params: [
       { name: 'url', label: 'URL', type: 'url', placeholder: 'https://...', required: true },
     ],
@@ -163,6 +174,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Opens a specific app on the device',
+    hint: 'Cihazdaki yüklü bir uygulamayı açar. Uygulama adını tam olarak girin (örn. Safari, Maps, Settings, Mail). Özel uygulamalar için App Store\'daki görünen adı kullanın.',
     params: [
       { name: 'app', label: 'App Name', type: 'text', placeholder: 'Safari, Maps, Settings...', required: true },
     ],
@@ -174,6 +186,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Creates a key-value dictionary',
+    hint: 'Anahtar-değer çiftlerinden oluşan bir sözlük oluşturur. API\'ye göndereceğiniz JSON gövdesini veya ayarları saklamak için kullanışlıdır. "Get Dictionary Value" ile tek bir değeri okuyabilirsiniz.',
     params: [
       { name: 'key', label: 'Key', type: 'text', placeholder: 'keyName', required: true },
       { name: 'value', label: 'Value', type: 'text', placeholder: 'value', required: true },
@@ -187,6 +200,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Creates a list of items',
+    hint: 'Virgülle ayrılmış öğelerden bir liste oluşturur. "Repeat with Each" ile bu listenin her öğesi üzerinde döngü kurabilirsiniz. "Choose from List" ile kullanıcıya seçim yaptırabilirsiniz.',
     params: [
       { name: 'items', label: 'Items (comma separated)', type: 'textarea', placeholder: 'Item 1, Item 2, Item 3', required: true },
     ],
@@ -199,6 +213,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'scripting',
     color: '#6366f1',
     description: 'Shows a menu for the user to pick from',
+    hint: 'Kullanıcıya bir seçim menüsü gösterir. Seçilen değer shortcut\'ın çıktısı olur. Bunu "If" ile kombinleyerek seçime göre farklı dallar oluşturabilirsiniz.',
     params: [
       { name: 'prompt', label: 'Prompt', type: 'text', placeholder: 'Choose an option', required: true },
       { name: 'options', label: 'Options (comma separated)', type: 'textarea', placeholder: 'Option 1, Option 2, Option 3', required: true },
@@ -237,6 +252,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'web',
     color: '#0ea5e9',
     description: 'Performs an HTTP request and returns the result',
+    hint: 'Bir URL\'ye HTTP isteği gönderir ve yanıtı döndürür. Headers alanına JSON formatında yetkilendirme bilgisi ekleyin (örn. {"Authorization": "Bearer TOKEN"}). POST/PUT için Body alanına JSON gövdesi girin. Yanıt genellikle JSON metin olarak döner — "Get Dictionary from Input" ile parse edebilirsiniz.',
     params: [
       { name: 'url', label: 'URL', type: 'url', placeholder: 'https://api.example.com/data', required: true },
       { name: 'method', label: 'Method', type: 'select', options: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], required: true, defaultValue: 'GET' },
@@ -252,6 +268,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'web',
     color: '#0ea5e9',
     description: 'Opens a web search',
+    hint: 'Seçilen arama motorunda arama yapıp tarayıcıyı açar. Değişken kullanabilirsiniz: Örneğin arama sorgusu olarak "searchQuery" değişkenini girebilirsiniz. YouTube araması için video içerik önerileri almaya yarar.',
     params: [
       { name: 'query', label: 'Search Query', type: 'text', placeholder: 'What to search for', required: true },
       { name: 'engine', label: 'Search Engine', type: 'select', options: ['Google', 'Bing', 'DuckDuckGo', 'YouTube'], required: true, defaultValue: 'Google' },
@@ -312,6 +329,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'web',
     color: '#0ea5e9',
     description: 'Hashes text using a chosen algorithm',
+    hint: 'Metni tek yönlü hash fonksiyonuyla şifreler. Güvenlik uygulamalarında SHA-256 önerilir. MD5 geriye dönük uyumluluk için kullanılabilir ancak kriptografik açıdan zayıftır. Çıktı hex string olarak döner.',
     params: [
       { name: 'input', label: 'Input Text', type: 'text', placeholder: 'Text to hash', required: true },
       { name: 'algorithm', label: 'Algorithm', type: 'select', options: ['MD5', 'SHA-1', 'SHA-256', 'SHA-512'], required: true, defaultValue: 'SHA-256' },
@@ -327,6 +345,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'files',
     color: '#f59e0b',
     description: 'Gets a file from the file system',
+    hint: 'Cihazdaki dosya sisteminden bir dosya okur. iOS\'ta yollar genellikle iCloud Drive veya Dosyalar uygulamasına göre belirtilir (örn. /iCloud Drive/Shortcuts/data.txt). Çıktıyı "Save File" veya "Share" ile kullanabilirsiniz.',
     params: [
       { name: 'path', label: 'File Path', type: 'text', placeholder: '/path/to/file.txt', required: true },
     ],
@@ -415,6 +434,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'media',
     color: '#ec4899',
     description: 'Takes a photo with the camera',
+    hint: 'Kamerayla fotoğraf çeker. "Show Preview" kapalıysa önizleme olmadan anında çekilir. Çıktı olarak Image nesnesi döner — bunu "Resize Image" veya "Save File" ile kullanabilirsiniz. Birden fazla fotoğraf için "Count" parametresini artırın.',
     params: [
       { name: 'camera', label: 'Camera', type: 'select', options: ['Back', 'Front'], defaultValue: 'Back' },
       { name: 'show_preview', label: 'Show Preview', type: 'boolean', defaultValue: 'true' },
@@ -521,6 +541,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'location',
     color: '#10b981',
     description: 'Gets the device\'s current GPS location',
+    hint: 'GPS üzerinden cihazın anlık konumunu alır. Konum servislerinin açık olması ve uygulamanın izin almış olması gerekir. Çıktı bir Location nesnesidir — "Get Address" veya "Show in Maps" ile zincirleyebilirsiniz.',
     params: [],
     outputType: 'location',
   },
@@ -595,6 +616,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'communication',
     color: '#8b5cf6',
     description: 'Sends an iMessage or SMS',
+    hint: 'iMessage veya SMS gönderir. Alıcı alanına telefon numarası veya Apple ID e-postası girin. Birden fazla alıcı için virgülle ayırın. Bu action iOS\'ta Mesajlar uygulamasını açar — gönder butonuna basmak kullanıcıya kalır.',
     params: [
       { name: 'to', label: 'Recipient (phone or email)', type: 'text', placeholder: '+1 555 000 0000', required: true },
       { name: 'message', label: 'Message', type: 'textarea', placeholder: 'Type your message', required: true },
@@ -700,6 +722,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'audio',
     color: '#f97316',
     description: 'Reads text aloud using text-to-speech',
+    hint: 'Metni sesli okur (text-to-speech). "Wait Until Done" açıksa okuma bitene kadar shortcut devam etmez. Değişkenden metin okutabilirsiniz: Text alanına değişken adını yazın. Sessize alınmış cihazlarda çalışmayabilir.',
     params: [
       { name: 'text', label: 'Text to Speak', type: 'textarea', placeholder: 'Hello, world!', required: true },
       { name: 'voice', label: 'Voice', type: 'select', options: ['Default', 'Siri', 'Alex', 'Samantha'], defaultValue: 'Default' },
@@ -751,6 +774,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'device',
     color: '#64748b',
     description: 'Sets the screen brightness',
+    hint: 'Ekran parlaklığını 0-100 arası bir değere ayarlar. Gece rutinleri için 10-20, okuma için 60-80 önerilir. "Get Device Details" ile mevcut parlaklık seviyesini okuyup önce saklayabilirsiniz.',
     params: [
       { name: 'brightness', label: 'Brightness (0-100)', type: 'number', placeholder: '80', required: true },
     ],
@@ -851,6 +875,7 @@ export const ACTIONS_LIBRARY: ActionDefinition[] = [
     category: 'math',
     color: '#14b8a6',
     description: 'Evaluates a mathematical expression',
+    hint: 'Matematiksel ifadeyi hesaplar. Değişken adlarını doğrudan kullanabilirsiniz (örn. price * 1.18). Desteklenen operatörler: +, -, *, /, %, ^ (üs). Parantez kullanımı desteklenir. Sonuç sayısal değer olarak döner.',
     params: [
       { name: 'expression', label: 'Expression', type: 'text', placeholder: '(price * 1.18) / quantity', required: true },
     ],

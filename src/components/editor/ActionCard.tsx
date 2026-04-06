@@ -4,9 +4,10 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ShortcutAction, useEditorStore } from "@/store/useEditorStore";
 import { GlassCard } from "@/components/ui/GlassCard";
-import { GripVertical, Trash2, AlertCircle } from "lucide-react";
+import { GripVertical, Trash2, AlertCircle, Info } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ACTIONS_LIBRARY } from "@/lib/actions-library";
+import { useState } from "react";
 
 interface Props {
   action: ShortcutAction;
@@ -88,6 +89,7 @@ export function ActionCard({ action }: Props) {
     useSortable({ id: action.id });
   const { updateActionParam, removeAction, errors } = useEditorStore();
   const error = errors[action.id];
+  const [showHint, setShowHint] = useState(false);
 
   const definition = ACTIONS_LIBRARY.find((a) => a.type === action.type);
 
@@ -124,13 +126,37 @@ export function ActionCard({ action }: Props) {
             )}
           </div>
         </div>
-        <button
-          onClick={() => removeAction(action.id)}
-          className="text-red-400/70 hover:text-red-400 transition-colors flex-shrink-0"
-        >
-          <Trash2 size={16} />
-        </button>
+        <div className="flex items-center gap-2">
+          {definition?.hint && (
+            <button
+              onClick={() => setShowHint((v) => !v)}
+              title="Show usage guideline"
+              className={cn(
+                "p-1.5 rounded-lg transition-colors",
+                showHint
+                  ? "bg-indigo-500/20 text-indigo-400"
+                  : "text-slate-500 hover:text-indigo-400 hover:bg-indigo-500/10"
+              )}
+            >
+              <Info size={15} />
+            </button>
+          )}
+          <button
+            onClick={() => removeAction(action.id)}
+            className="text-red-400/70 hover:text-red-400 transition-colors"
+          >
+            <Trash2 size={16} />
+          </button>
+        </div>
       </div>
+
+      {/* Hint Panel */}
+      {showHint && definition?.hint && (
+        <div className="flex gap-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl p-3 text-xs text-indigo-200 leading-relaxed">
+          <Info size={14} className="text-indigo-400 flex-shrink-0 mt-0.5" />
+          <span>{definition.hint}</span>
+        </div>
+      )}
 
       {error && (
         <div className="flex items-center gap-2 text-xs text-red-400 bg-red-400/10 p-2 rounded-lg">
