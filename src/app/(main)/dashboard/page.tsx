@@ -158,7 +158,7 @@ export default function DashboardPage() {
           {shortcuts.map((sc) => (
             <div
               key={sc.id}
-              className="group relative bg-slate-900/50 hover:bg-slate-900/80 border border-white/10 hover:border-indigo-500/50 rounded-2xl p-6 flex flex-col gap-5 transition-all duration-300 cursor-pointer hover:shadow-2xl hover:shadow-indigo-500/10"
+              className="group relative bg-white dark:bg-slate-900 border border-slate-200 dark:border-white/10 hover:border-indigo-600 rounded-2xl p-6 flex flex-col gap-5 transition-all duration-300 cursor-pointer shadow-sm hover:shadow-2xl hover:shadow-indigo-600/10"
               onClick={() => handleEdit(sc)}
             >
               {/* Header */}
@@ -166,33 +166,35 @@ export default function DashboardPage() {
                 <div className="flex items-center gap-4">
                   <div
                     className="w-14 h-14 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 shadow-inner"
-                    style={{ backgroundColor: `${sc.color ?? "#6366f1"}30` }}
+                    style={{ backgroundColor: `${sc.color ?? "#6366f1"}20` }}
                   >
                     {sc.icon ?? "⚡"}
                   </div>
                   <div className="min-w-0">
-                    <h3 className="font-bold text-slate-100 text-lg truncate group-hover:text-white transition-colors">{sc.title}</h3>
-                    <p className="text-sm text-slate-400 truncate mt-1 leading-relaxed">
+                    <h3 className="font-black text-slate-900 dark:text-slate-100 text-lg truncate group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">
+                      {sc.title}
+                    </h3>
+                    <p className="text-sm font-bold text-slate-500 dark:text-slate-400 truncate mt-1 leading-relaxed">
                       {sc.description || "No description"}
                     </p>
                   </div>
                 </div>
                 {sc.is_public && (
-                  <span className="text-[10px] uppercase font-bold tracking-widest bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2 py-1 rounded-lg flex-shrink-0">
+                  <span className="text-[10px] uppercase font-black tracking-widest bg-emerald-100 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/30 px-2.5 py-1 rounded-lg flex-shrink-0">
                     Public
                   </span>
                 )}
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-5 text-[11px] font-medium text-slate-500 uppercase tracking-wider">
-                <span className="flex items-center gap-1.5 text-slate-400">
-                  <Zap size={14} className="text-indigo-400" />
+              <div className="flex items-center gap-5 text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                <span className="flex items-center gap-1.5 text-slate-600 dark:text-slate-400">
+                  <Zap size={14} className="text-indigo-600 dark:text-indigo-400" />
                   {sc.content_json?.length ?? 0} actions
                 </span>
                 <span className="text-slate-500">{timeAgo(sc.updated_at)}</span>
                 {sc.download_count > 0 && (
-                  <span className="text-slate-400">{sc.download_count} downloads</span>
+                  <span className="text-slate-600 dark:text-slate-400">{sc.download_count} downloads</span>
                 )}
               </div>
 
@@ -203,17 +205,17 @@ export default function DashboardPage() {
               >
                 <button
                   onClick={() => handleEdit(sc)}
-                  className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl transition-all"
+                  className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 px-4 py-2 rounded-xl transition-all border border-slate-200 dark:border-transparent"
                 >
                   <Pencil size={14} /> Edit
                 </button>
                 <button
                   onClick={() => handleTogglePublic(sc)}
                   className={cn(
-                    "flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl transition-all",
+                    "flex items-center gap-2 text-xs font-bold px-4 py-2 rounded-xl transition-all border dark:border-transparent",
                     sc.is_public
-                      ? "text-emerald-400 bg-emerald-500/10 hover:bg-emerald-500/20"
-                      : "text-slate-300 hover:text-white bg-white/5 hover:bg-white/10"
+                      ? "text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 border-emerald-200 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
+                      : "text-slate-600 dark:text-slate-300 hover:text-white bg-slate-50 dark:bg-white/5 border-slate-200"
                   )}
                 >
                   <Share2 size={14} />
@@ -222,15 +224,15 @@ export default function DashboardPage() {
                 {sc.is_public && (
                   <button
                     onClick={() => copyShareLink(sc)}
-                    className="flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white bg-white/5 hover:bg-white/10 px-4 py-2 rounded-xl transition-all"
+                    className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-white bg-slate-50 dark:bg-white/5 px-4 py-2 rounded-xl transition-all border border-slate-200 dark:border-transparent font-black"
                   >
-                    Copy API
+                    API
                   </button>
                 )}
                 <button
                   onClick={() => handleDelete(sc.id)}
                   disabled={deletingId === sc.id}
-                  className="ml-auto flex items-center gap-2 text-xs font-semibold text-red-400/80 hover:text-red-400 bg-red-500/5 hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all disabled:opacity-50"
+                  className="ml-auto flex items-center gap-2 text-xs font-bold text-red-600/80 hover:text-red-700 bg-red-50 dark:bg-red-500/5 hover:bg-red-100 dark:hover:bg-red-500/10 px-4 py-2 rounded-xl transition-all border border-red-100 dark:border-transparent disabled:opacity-50"
                 >
                   {deletingId === sc.id ? (
                     <Loader2 size={14} className="animate-spin" />

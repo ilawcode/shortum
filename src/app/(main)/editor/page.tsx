@@ -183,15 +183,15 @@ export default function EditorPage() {
               onChange={(e) => setShortcutTitle(e.target.value)}
               onBlur={() => setEditingTitle(false)}
               onKeyDown={(e) => e.key === "Enter" && setEditingTitle(false)}
-              className="bg-transparent border-b border-indigo-500 text-lg font-semibold text-white outline-none px-1"
+              className="bg-transparent border-b border-indigo-500 text-lg font-bold text-slate-900 dark:text-white outline-none px-1"
             />
           ) : (
             <button
               onClick={() => setEditingTitle(true)}
-              className="flex items-center gap-2 text-lg font-semibold text-white hover:text-indigo-300 transition-colors"
+              className="flex items-center gap-2 text-lg font-bold text-slate-900 dark:text-white hover:text-indigo-600 dark:hover:text-indigo-300 transition-colors"
             >
               {shortcutTitle}
-              <Pencil size={14} className="text-slate-500" />
+              <Pencil size={14} className="text-slate-400 dark:text-slate-500" />
             </button>
           )}
 
@@ -205,7 +205,7 @@ export default function EditorPage() {
           <button
             onClick={() => setShowSimulator(true)}
             disabled={actions.length === 0}
-            className="px-4 py-2 rounded-xl text-sm font-medium bg-slate-500/20 hover:bg-slate-500/30 disabled:opacity-40 text-white transition-colors flex items-center gap-2"
+            className="px-4 py-2 rounded-xl text-sm font-semibold bg-slate-100 dark:bg-slate-500/20 hover:bg-slate-200 dark:hover:bg-slate-500/30 disabled:opacity-40 text-slate-700 dark:text-white transition-colors flex items-center gap-2 border border-slate-200 dark:border-transparent"
           >
             <Play size={16} /> Simulate
           </button>
@@ -228,7 +228,7 @@ export default function EditorPage() {
             value={shortcutDescription}
             onChange={(e) => setShortcutDescription(e.target.value)}
             placeholder="Add a short description (optional)..."
-            className="w-full max-w-2xl mx-auto block mb-6 bg-transparent border-b border-white/20 text-slate-200 text-sm outline-none pb-1 focus:border-indigo-500 transition-colors placeholder:text-slate-500"
+            className="w-full max-w-2xl mx-auto block mb-6 bg-transparent border-b border-slate-200 dark:border-white/20 text-slate-600 dark:text-slate-200 text-sm outline-none pb-1 focus:border-indigo-500 transition-colors placeholder:text-slate-400 dark:placeholder:text-slate-500"
           />
 
           <DndContext
@@ -264,7 +264,7 @@ export default function EditorPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search actions..."
-                className="w-full bg-slate-900 border border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-100 outline-none focus:border-indigo-500 transition-all placeholder:text-slate-500 shadow-inner"
+                className="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-3 py-2.5 text-sm text-slate-900 dark:text-slate-100 outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500 shadow-sm"
               />
             </div>
           </div>
@@ -306,13 +306,13 @@ export default function EditorPage() {
                 <div key={catId}>
                   <button
                     onClick={() => toggleCategory(catId)}
-                    className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-bold text-slate-300 uppercase tracking-[0.2em] hover:bg-white/5 transition-colors"
+                    className="w-full flex items-center justify-between px-4 py-3 text-[10px] font-bold text-slate-500 dark:text-slate-300 uppercase tracking-[0.2em] hover:bg-slate-50 dark:hover:bg-white/5 transition-colors"
                   >
                     <span>
                       {category?.icon} {category?.label ?? catId}
                     </span>
                     <div className="flex items-center gap-2">
-                      <span className="text-slate-500 normal-case font-medium">
+                      <span className="text-slate-400 dark:text-slate-500 normal-case font-bold">
                         {catActions.length}
                       </span>
                       {isExpanded ? (
@@ -328,16 +328,16 @@ export default function EditorPage() {
                         <button
                           key={action.type}
                           onClick={() => addActionFromDefinition(action)}
-                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-white/5 transition-all text-left group border-l-2 border-transparent hover:border-indigo-500"
+                          className="w-full flex items-center gap-3 px-4 py-3 hover:bg-slate-50 dark:hover:bg-white/5 transition-all text-left group border-l-2 border-transparent hover:border-indigo-500"
                         >
                           <span className="text-xl w-7 text-center flex-shrink-0">
                             {action.icon}
                           </span>
                           <div className="min-w-0">
-                            <div className="text-sm font-semibold text-slate-100 group-hover:text-white transition-colors truncate">
+                            <div className="text-sm font-bold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 dark:group-hover:text-white transition-colors truncate">
                               {action.label}
                             </div>
-                            <div className="text-[11px] text-slate-400 group-hover:text-slate-300 truncate mt-0.5">
+                            <div className="text-[11px] text-slate-500 dark:text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300 truncate mt-0.5 font-medium">
                               {action.description}
                             </div>
                           </div>

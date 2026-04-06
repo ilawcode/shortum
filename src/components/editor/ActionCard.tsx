@@ -23,7 +23,7 @@ function ParamInput({
   onChange: (val: string) => void;
 }) {
   const baseInputClass =
-    "w-full bg-slate-900/50 border border-white/10 rounded-lg px-4 py-2 text-sm text-slate-100 placeholder:text-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition-all";
+    "w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-300 dark:border-white/20 rounded-lg px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-600/30 transition-all shadow-sm";
 
   if (param.type === "boolean") {
     return (
@@ -31,13 +31,13 @@ function ParamInput({
         type="button"
         onClick={() => onChange(value === "true" ? "false" : "true")}
         className={cn(
-          "relative w-11 h-6 rounded-full transition-all flex-shrink-0",
-          value === "true" ? "bg-indigo-600" : "bg-slate-700"
+          "relative w-12 h-7 rounded-full transition-all flex-shrink-0 shadow-inner",
+          value === "true" ? "bg-indigo-600" : "bg-slate-300 dark:bg-slate-700"
         )}
       >
         <span
           className={cn(
-            "absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform",
+            "absolute top-1 left-1 w-5 h-5 bg-white rounded-full shadow-md transition-transform",
             value === "true" ? "translate-x-5" : "translate-x-0"
           )}
         />
@@ -47,18 +47,28 @@ function ParamInput({
 
   if (param.type === "select" && param.options) {
     return (
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className={cn(baseInputClass, "cursor-pointer appearance-none bg-slate-900 shadow-sm")}
-      >
-        <option value="" className="bg-slate-900">Select...</option>
-        {param.options.map((opt) => (
-          <option key={opt} value={opt} className="bg-slate-900">
-            {opt}
-          </option>
-        ))}
-      </select>
+      <div className="relative">
+        <select
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          className={cn(
+            baseInputClass,
+            "cursor-pointer appearance-none pr-10 font-medium"
+          )}
+        >
+          <option value="" className="bg-white dark:bg-slate-900 text-slate-900">Select...</option>
+          {param.options.map((opt) => (
+            <option key={opt} value={opt} className="bg-white dark:bg-slate-900 text-slate-900">
+              {opt}
+            </option>
+          ))}
+        </select>
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-500">
+          <svg width="12" height="8" viewBox="0 0 12 8" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        </div>
+      </div>
     );
   }
 
@@ -67,7 +77,7 @@ function ParamInput({
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={cn(baseInputClass, "resize-none h-24 mb-1")}
+        className={cn(baseInputClass, "resize-none h-28 mb-1 leading-relaxed")}
         placeholder={param.placeholder}
       />
     );
@@ -103,26 +113,28 @@ export function ActionCard({ action }: Props) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "flex flex-col gap-4 relative border-l-4 shadow-2xl",
-        error ? "border-red-500" : "border-indigo-500/80"
+        "flex flex-col gap-4 relative border-l-8 shadow-2xl transition-all hover:shadow-indigo-500/10",
+        error ? "border-red-600" : "border-indigo-600"
       )}
     >
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
           <button
             {...attributes}
             {...listeners}
-            className="cursor-grab text-slate-400 hover:text-white"
+            className="cursor-grab text-slate-400 dark:text-slate-600 hover:text-slate-900 dark:hover:text-white transition-colors"
           >
-            <GripVertical size={20} />
+            <GripVertical size={24} />
           </button>
-          <span className="text-xl shrink-0">{action.icon}</span>
+          <span className="text-2xl shrink-0">{action.icon}</span>
           <div className="flex flex-col min-w-0">
-            <span className="font-semibold text-slate-100 text-sm leading-tight truncate">
+            <span className="font-black text-slate-900 dark:text-slate-100 text-sm md:text-base leading-tight truncate">
               {action.label}
             </span>
             {definition && (
-              <span className="text-xs text-slate-300 line-clamp-1 opacity-70">{definition.description}</span>
+              <span className="text-xs text-slate-600 dark:text-slate-400 line-clamp-1 mt-0.5 font-bold tracking-tight">
+                {definition.description}
+              </span>
             )}
           </div>
         </div>
@@ -130,48 +142,50 @@ export function ActionCard({ action }: Props) {
           {definition?.hint && (
             <button
               onClick={() => setShowHint((v) => !v)}
-              title="Show usage guideline"
               className={cn(
-                "p-2 rounded-lg transition-all",
+                "p-2.5 rounded-xl transition-all",
                 showHint
-                  ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-                  : "text-slate-400 hover:text-white hover:bg-slate-700"
+                  ? "bg-indigo-600 text-white shadow-xl shadow-indigo-600/40"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
-              <Info size={16} />
+              <Info size={18} />
             </button>
           )}
           <button
             onClick={() => removeAction(action.id)}
-            className="p-2 text-slate-400 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-all"
+            className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
           >
-            <Trash2 size={16} />
+            <Trash2 size={18} />
           </button>
         </div>
       </div>
 
-      {/* Hint Panel */}
+      {/* Hint Panel - MAX CONTRAST */}
       {showHint && definition?.hint && (
-        <div className="flex gap-3 bg-indigo-600/15 border border-indigo-500/30 rounded-xl p-4 text-xs text-indigo-100 leading-relaxed animate-in fade-in slide-in-from-top-1 duration-200">
-          <Info size={16} className="text-indigo-400 flex-shrink-0 mt-0.5" />
-          <span>{definition.hint}</span>
+        <div className="flex gap-4 bg-indigo-100/80 dark:bg-indigo-900/40 border border-indigo-300 dark:border-indigo-500/50 rounded-2xl p-5 text-sm font-semibold text-indigo-900 dark:text-indigo-100 leading-relaxed animate-in fade-in zoom-in-95 duration-200">
+          <Info size={20} className="text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <p className="font-black text-[10px] uppercase tracking-widest text-indigo-500 dark:text-indigo-300">Yönerge</p>
+            <p>{definition.hint}</p>
+          </div>
         </div>
       )}
 
       {error && (
-        <div className="flex items-center gap-2 text-xs text-red-200 bg-red-500/20 p-3 rounded-xl border border-red-500/30">
-          <AlertCircle size={16} className="text-red-400 shrink-0" />
+        <div className="flex items-center gap-3 text-sm font-bold text-red-900 dark:text-red-200 bg-red-100 dark:bg-red-500/20 p-4 rounded-xl border border-red-300 dark:border-red-500/30">
+          <AlertCircle size={20} className="text-red-600 dark:text-red-400 shrink-0" />
           {error}
         </div>
       )}
 
       {action.params.length > 0 && (
-        <div className="space-y-4 pt-1">
+        <div className="space-y-5 pt-2">
           {action.params.map((param) => {
             const schema = definition?.params.find((p) => p.name === param.name);
             return (
-              <div key={param.name} className="flex flex-col gap-2">
-                <label className="text-xs text-slate-200 font-semibold uppercase tracking-widest opacity-80">
+              <div key={param.name} className="flex flex-col gap-2.5">
+                <label className="text-[11px] text-slate-900 dark:text-slate-200 font-black uppercase tracking-[0.2em] px-1">
                   {schema?.label ?? param.name}
                 </label>
                 <ParamInput
