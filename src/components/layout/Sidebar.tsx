@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Home, Command, PlusCircle, Settings, User } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { NotificationWidget } from "./NotificationWidget";
 
 const NAV_ITEMS = [
     { href: "/dashboard", label: "Dashboard", icon: Home },
@@ -17,8 +18,9 @@ export function Sidebar() {
 
     return (
         <aside className="w-64 h-screen fixed left-0 top-0 glass-surface border-r border-white/10 flex flex-col hidden md:flex z-50">
-            <div className="p-6 font-bold text-2xl tracking-tighter text-indigo-500">
-                ShortcutHub
+            <div className="p-6 font-bold text-2xl tracking-tighter text-indigo-500 flex items-center justify-between">
+                <span>ShortcutHub</span>
+                <NotificationWidget />
             </div>
 
             <nav className="flex-1 px-4 space-y-2 mt-4">
