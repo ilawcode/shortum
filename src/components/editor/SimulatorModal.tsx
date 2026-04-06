@@ -12,106 +12,166 @@ interface Props {
 }
 
 export function SimulatorModal({ shortcutId, onClose }: Props) {
-    const [logs, setLogs] = useState<{ id: number; message: string; type: 'info' | 'success' | 'error' }[]>([]);
+    const [logs, setLogs] = useState<{ id: number; message: string; type: 'info' | 'success' | 'error' | 'warn' | 'system' }[]>([]);
     const [isRunning, setIsRunning] = useState(false);
+    const [lastOutput, setLastOutput] = useState<string | null>(null);
 
-    const addLog = (message: string, type: 'info' | 'success' | 'error' = 'info') => {
+    const addLog = (message: string, type: 'info' | 'success' | 'error' | 'warn' | 'system' = 'info') => {
         setLogs(prev => [...prev, { id: Date.now() + Math.random(), message, type }]);
+    };
+
+    const resolveValue = (val: string, memory: Record<string, any>) => {
+        if (!val) return "";
+        // Simple variable resolution: {{varName}}
+        return val.replace(/\{\{(.*?)\}\}/g, (_, key) => {
+            return memory[key.trim()] !== undefined ? memory[key.trim()] : `[${key}?]`;
+        });
     };
 
     const runSimulation = async () => {
         setLogs([]);
+        setLastOutput(null);
         setIsRunning(true);
-        addLog(`Fetching shortcut ${shortcutId}...`, 'info');
+        addLog(`Initiating System Boot...`, 'system');
+        addLog(`Fetching Process ID: ${shortcutId}`, 'info');
 
         try {
             const res = await fetch(`/api/s/${shortcutId}`);
-            if (!res.ok) throw new Error("Failed to fetch shortcut data.");
+            if (!res.ok) throw new Error("Connection to factory lost. Resource not found.");
 
-            const contentJson = await res.json();
-            addLog(`Downloaded ${contentJson.length} actions. Starting engine...`, 'success');
+            const shortcutData = await res.json();
+            const actions = shortcutData.content_json || [];
 
-            // Variables dictionary like iOS
-            const memory: Record<string, string> = {};
+            addLog(`Sequence Loaded: ${actions.length} commands found.`, 'system');
+            addLog(`Compiling Routines...`, 'info');
 
-            for (let i = 0; i < contentJson.length; i++) {
-                const action = contentJson[i];
-                addLog(`Executing [${i + 1}/${contentJson.length}]: ${action.label || action.type}`, 'info');
+            const memory: Record<string, any> = {};
+            let currentOutput: any = null;
 
-                await new Promise(r => setTimeout(r, 600)); // Simulate processing delay
+            for (let i = 0; i < actions.length; i++) {
+                const action = actions[i];
+                addLog(`Executing [${i + 1}/${actions.length}]: ${action.label || action.type}`, 'system');
 
-                if (action.type === 'com.apple.shortcuts.scripting.text') {
-                    const textParam = action.params.find((p: any) => p.name === 'Input')?.value || '';
-                    if (action.outputName) {
-                        memory[action.outputName] = textParam;
-                        addLog(`📝 Assigned Text to Variable '${action.outputName}': "${textParam}"`, 'success');
-                    } else {
-                        addLog(`📝 Processed Text: "${textParam}"`, 'info');
+                await new Promise(r => setTimeout(r, 800));
+
+                const params = action.params || [];
+                const getParam = (name: string) => params.find((p: any) => p.name === name)?.value || "";
+
+                switch (action.type) {
+                    case 'scripting.text': {
+                        const rawText = getParam('text');
+                        currentOutput = resolveValue(rawText, memory);
+                        addLog(`📝 Buffer assigned value: "${currentOutput}"`, 'success');
+                        break;
                     }
-                }
-                else if (action.type === 'com.apple.shortcuts.audio.speak') {
-                    const inputParam = action.params.find((p: any) => p.name === 'Input')?.value || '';
-                    // Resolve variable if needed
-                    const finalValue = memory[inputParam] !== undefined ? memory[inputParam] : inputParam;
-                    addLog(`🔊 Speaking: "${finalValue}"`, 'success');
-                }
-                else {
-                    addLog(`⚠️ Unknown or unsupported action type: ${action.type}`, 'info');
+                    case 'scripting.set_variable': {
+                        const varName = getParam('variable');
+                        const rawVal = getParam('value');
+                        // If value is empty, we use currentOutput (pipe behavior)
+                        const valToStore = rawVal ? resolveValue(rawVal, memory) : currentOutput;
+                        memory[varName] = valToStore;
+                        addLog(`📦 Variable '${varName}' stored successfully.`, 'success');
+                        break;
+                    }
+                    case 'scripting.get_variable': {
+                        const varName = getParam('variable');
+                        currentOutput = memory[varName];
+                        addLog(`📂 Variable '${varName}' retrieved: "${currentOutput}"`, 'success');
+                        break;
+                    }
+                    case 'audio.speak_text': {
+                        const rawText = getParam('text');
+                        const textToSpeak = resolveValue(rawText, memory) || currentOutput;
+                        addLog(`🔊 AUD-Engine: Speaking session started: "${textToSpeak}"`, 'success');
+                        break;
+                    }
+                    case 'scripting.show_alert': {
+                        const msg = resolveValue(getParam('message'), memory) || currentOutput;
+                        addLog(`🔔 UI-Interupt: Alert displayed with message: "${msg}"`, 'warn');
+                        break;
+                    }
+                    default:
+                        addLog(`⚠️ Non-executable or unsupported in simulation: ${action.type}`, 'warn');
+                        break;
                 }
             }
 
-            addLog("✅ Routine execution finished.", 'success');
-            toast.success("Simulation Complete");
+            setLastOutput(currentOutput);
+            addLog("🏁 Cycle Complete. All commands processed successfully.", 'success');
+            toast.success("Routine Finished");
 
         } catch (err: any) {
-            addLog(`Simulation aborted. Error: ${err.message}`, 'error');
-            toast.error("Simulation failed");
+            addLog(`CRITICAL FAILURE: ${err.message}`, 'error');
+            toast.error("Simulation Aborted");
         } finally {
             setIsRunning(false);
         }
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <GlassCard className="max-w-2xl w-full flex flex-col gap-4 border border-white/10 shadow-2xl overflow-hidden h-[600px]">
-                <div className="flex items-center justify-between border-b border-white/10 pb-4">
-                    <div className="flex items-center gap-3 text-indigo-400">
-                        <Play size={20} />
-                        <h2 className="font-semibold text-lg text-white">Debugger & Engine Simulator</h2>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-[#1c2434]/80 backdrop-blur-md p-4">
+            <div className="panel-card max-w-2xl w-full flex flex-col bg-white dark:bg-[#1c2434] shadow-2xl overflow-hidden h-[650px] border-[#313d4a]">
+                <div className="flex items-center justify-between border-b border-[#e2e8f0] dark:border-[#313d4a] px-6 py-4 bg-white dark:bg-[#24303f]">
+                    <div className="flex items-center gap-3 text-[#3c50e0]">
+                        <Zap size={20} fill="currentColor" />
+                        <h2 className="font-black text-lg text-[#1c2434] dark:text-white uppercase tracking-tighter">Debug Console / Engine V1</h2>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-xl transition-colors">
-                        <X size={20} className="text-slate-400" />
+                    <button onClick={onClose} className="p-2 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-sm text-slate-400 hover:text-red-500 transition-all">
+                        <X size={20} />
                     </button>
                 </div>
 
-                <div className="flex-1 bg-black/40 rounded-xl border border-white/5 p-4 overflow-y-auto font-mono text-sm flex flex-col gap-2">
+                <div className="flex-1 bg-slate-900 overflow-y-auto p-6 font-mono text-xs flex flex-col gap-2.5 leading-relaxed">
                     {logs.length === 0 ? (
-                        <div className="text-slate-500 h-full flex items-center justify-center">
-                            Press Run to start simulation
+                        <div className="text-slate-600 h-full flex flex-col items-center justify-center gap-4">
+                            <Play size={40} className="opacity-20 animate-pulse" />
+                            <p className="uppercase font-black tracking-widest text-[10px]">Ready to process automation hub...</p>
                         </div>
                     ) : (
                         logs.map(log => (
                             <div key={log.id} className={cn(
-                                "py-1",
+                                "flex gap-3",
                                 log.type === 'error' ? "text-red-400" :
-                                    log.type === 'success' ? "text-emerald-400" : "text-slate-300"
+                                log.type === 'success' ? "text-emerald-400" : 
+                                log.type === 'warn' ? "text-amber-400" :
+                                log.type === 'system' ? "text-indigo-400 font-bold" : "text-slate-400"
                             )}>
-                                <span className="text-slate-600 mr-2">{'>'}</span>{log.message}
+                                <span className={cn(
+                                    "flex-shrink-0 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-black",
+                                    log.type === 'error' ? "bg-red-500/20 text-red-500" :
+                                    log.type === 'success' ? "bg-emerald-500/20 text-emerald-500" : 
+                                    log.type === 'warn' ? "bg-amber-500/20 text-amber-500" :
+                                    log.type === 'system' ? "bg-indigo-500/20 text-indigo-500" : "bg-slate-700 text-slate-400"
+                                )}>
+                                    {log.type === 'system' ? 'S' : log.type === 'error' ? '!' : log.type === 'warn' ? '?' : '>'}
+                                </span>
+                                <span>{log.message}</span>
                             </div>
                         ))
                     )}
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-white/10 mt-auto flex-shrink-0">
+                {lastOutput && (
+                    <div className="px-6 py-4 bg-emerald-500/10 border-t border-emerald-500/20 flex flex-col gap-1">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-emerald-600">Final Output Buffer</p>
+                        <p className="text-sm font-bold text-emerald-700 dark:text-emerald-400 break-all">{lastOutput}</p>
+                    </div>
+                )}
+
+                <div className="flex justify-between items-center px-6 py-5 border-t border-[#e2e8f0] dark:border-[#313d4a] bg-white dark:bg-[#24303f]">
+                    <div className="text-[10px] font-black uppercase tracking-[0.2em] text-[#8a99af]">
+                        Engine Status: {isRunning ? "Active" : "Idle"}
+                    </div>
                     <button
                         disabled={isRunning}
                         onClick={runSimulation}
-                        className="px-6 py-2.5 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white font-medium transition-colors flex items-center gap-2">
-                        {isRunning ? <Loader2 size={18} className="animate-spin" /> : <Play size={18} />}
-                        {isRunning ? "Simulating..." : "Run Simulator"}
+                        className="px-10 py-3 rounded-sm bg-[#3c50e0] hover:bg-opacity-90 text-white font-black uppercase tracking-widest text-xs transition-all flex items-center gap-3 shadow-lg shadow-indigo-500/20 disabled:opacity-50">
+                        {isRunning ? <Loader2 size={16} className="animate-spin" /> : <Play size={16} fill="currentColor" />}
+                        {isRunning ? "Running..." : "Initiate Routine"}
                     </button>
                 </div>
-            </GlassCard>
+            </div>
         </div>
     );
 }
+

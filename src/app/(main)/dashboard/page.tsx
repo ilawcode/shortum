@@ -7,12 +7,14 @@ import { Loader2, Plus, Zap, Pencil, Trash2, Share2, Search, Filter } from "luci
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
 
 export default function DashboardPage() {
   const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -41,15 +43,14 @@ export default function DashboardPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Are you sure you want to delete this shortcut?")) return;
     setDeletingId(id);
     try {
       const { error } = await supabase.from("shortcuts").delete().eq("id", id);
       if (error) throw error;
       setShortcuts((prev) => prev.filter((s) => s.id !== id));
-      toast.success("Shortcut deleted");
+      toast.success("Shortcut deleted from factory");
     } catch (e: any) {
-      toast.error("Delete failed");
+      toast.error("Process termination failed");
     } finally {
       setDeletingId(null);
     }
@@ -201,7 +202,7 @@ export default function DashboardPage() {
                     <Share2 size={16} strokeWidth={3} />
                   </button>
                   <button
-                    onClick={() => handleDelete(sc.id)}
+                    onClick={() => setConfirmDeleteId(sc.id)}
                     disabled={deletingId === sc.id}
                     className="flex items-center justify-center p-2.5 rounded-sm bg-red-50 text-red-500 border border-red-100 hover:bg-red-500 hover:text-white transition-all disabled:opacity-50"
                   >
@@ -216,6 +217,16 @@ export default function DashboardPage() {
           ))}
         </div>
       )}
+
+      <ConfirmationModal
+        isOpen={!!confirmDeleteId}
+        onClose={() => setConfirmDeleteId(null)}
+        onConfirm={() => confirmDeleteId && handleDelete(confirmDeleteId)}
+        title="Terminate Shortcut?"
+        message="This will permanently delete the shortcut from the factory. This action cannot be undone."
+        confirmLabel="Terminate Process"
+        cancelLabel="Keep Shortcut"
+      />
     </div>
   );
 }
