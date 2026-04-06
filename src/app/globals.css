@@ -20,25 +20,12 @@ body {
 }
 
 /* Glassmorphism Utilities */
-.glass-panel {
-  @apply backdrop-blur-xl backdrop-saturate-150 border border-white/10;
-}
-
-.glass-light {
-  @apply bg-slate-200/40;
-}
-
-.glass-dark {
-  @apply bg-slate-900/70;
-}
-
-/* Unified responsive glass surface */
 .glass-surface {
-  @apply glass-panel glass-light;
+  @apply backdrop-blur-xl backdrop-saturate-150 border border-white/10 bg-slate-200/40;
 }
 
 @media (prefers-color-scheme: dark) {
   .glass-surface {
-    @apply glass-panel glass-dark;
+    @apply bg-slate-900/70;
   }
 }
