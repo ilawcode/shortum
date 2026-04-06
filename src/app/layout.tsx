@@ -1,8 +1,6 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
-import { Navbar } from "@/components/layout/Navbar";
 import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -20,11 +18,8 @@ export default function RootLayout({
   return (
     <html lang="tr" className="dark">
       <body className={`${inter.className} min-h-screen bg-background antialiased`}>
-        <Navbar />
-        <Sidebar />
-
-        {/* Main Content Area */}
-        <main className="md:ml-64 pt-16 md:pt-0 min-h-screen">
+        {/* Main Content Area without global Sidebar/Navbar */}
+        <main className="min-h-screen">
           {children}
         </main>
 

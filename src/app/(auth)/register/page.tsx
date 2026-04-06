@@ -6,19 +6,20 @@ import { createClient } from "@/lib/supabase-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { Lock } from "lucide-react";
+import Link from "next/link";
 
-export default function LoginPage() {
+export default function RegisterPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
 
-    const handleLogin = async (e: React.FormEvent) => {
+    const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsLoading(true);
 
         // Validate Disposable Email List
-        const temporaryDomains = ['tempmail.com', '10minutemail.com']; // Placeholder local check
+        const temporaryDomains = ['tempmail.com', '10minutemail.com'];
         if (temporaryDomains.some(d => email.includes(d))) {
             toast.error("Disposable emails are blocked by security policy.");
             setIsLoading(false);
@@ -27,8 +28,7 @@ export default function LoginPage() {
 
         const supabase = createClient();
 
-        // Actually hit Supabase Auth (simulated since user handles keys)
-        const { error } = await supabase.auth.signInWithPassword({
+        const { error } = await supabase.auth.signUp({
             email,
             password
         });
@@ -36,7 +36,7 @@ export default function LoginPage() {
         if (error) {
             toast.error(error.message);
         } else {
-            toast.success("Welcome back!");
+            toast.success("Account created successfully!");
             router.push("/dashboard");
         }
 
@@ -50,11 +50,11 @@ export default function LoginPage() {
                     <div className="w-12 h-12 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center mb-2">
                         <Lock size={24} />
                     </div>
-                    <h1 className="text-2xl font-bold text-white tracking-tight">Access Engine</h1>
-                    <p className="text-slate-400 text-sm">Enter your credentials to securely access your ShortcutHub dashboard.</p>
+                    <h1 className="text-2xl font-bold text-white tracking-tight">Create Account</h1>
+                    <p className="text-slate-400 text-sm">Initialize your credentials to start using ShortcutHub.</p>
                 </div>
 
-                <form onSubmit={handleLogin} className="flex flex-col gap-4 mt-4">
+                <form onSubmit={handleRegister} className="flex flex-col gap-4 mt-4">
                     <div className="space-y-1">
                         <label className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Email Address</label>
                         <input
@@ -83,8 +83,12 @@ export default function LoginPage() {
                         disabled={isLoading}
                         className="w-full mt-6 py-3 rounded-xl bg-indigo-500 hover:bg-indigo-600 border border-indigo-400/50 disabled:opacity-50 text-white font-medium transition-all shadow-lg shadow-indigo-500/20"
                     >
-                        {isLoading ? "Authenticating Payload..." : "Sign In & Initialize"}
+                        {isLoading ? "Creating Account..." : "Register & Initialize"}
                     </button>
+                    
+                    <p className="text-center text-slate-400 text-sm mt-4">
+                        Already have an account? <Link href="/login" className="text-indigo-400 hover:text-indigo-300">Sign In</Link>
+                    </p>
                 </form>
             </GlassCard>
         </div>
