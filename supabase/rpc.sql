@@ -11,16 +11,16 @@ DECLARE
   v_current_credits integer;
   v_new_project_id uuid;
 BEGIN
-    -- 1. Get current credits with Row Lock to avoid race conditions
-    SELECT credits
-    INTO v_current_credits
-    FROM public.profiles
-    WHERE id = user_uuid
-    FOR
-    UPDATE;
+  -- 1. Get current credits with Row Lock to avoid race conditions
+  SELECT credits
+  INTO v_current_credits
+  FROM public.profiles
+  WHERE id = user_uuid
+  FOR
+  UPDATE;
 
-    -- 2. Validate credits
-    IF v_current_credits IS NULL THEN
+  -- 2. Validate credits
+  IF v_current_credits IS NULL THEN
     RAISE EXCEPTION 'Profile not found';
 END
 IF;
@@ -37,9 +37,9 @@ IF;
 
 -- 4. Create new shortcut project shell
 INSERT INTO public.shortcuts
-    (creator_id, share_slug, title, description, content_json, is_public)
+  (creator_id, share_slug, title, description, content_json, is_public)
 VALUES
-    (user_uuid, encode(gen_random_bytes(8), 'hex'), 'Untitled Shortcut', '', '[]', false)
+  (user_uuid, encode(gen_random_bytes(8), 'hex'), 'Untitled Shortcut', '', '[]', false)
 -- Dummy hex instead of nanoid inside pg function
 RETURNING id INTO v_new_project_id;
 
@@ -48,5 +48,19 @@ RETURN json_build_object(
     'new_project_id', v_new_project_id,
     'remaining_credits', v_current_credits - 1
   );
+END;
+$$;
+
+-- Function to safely increment download count
+CREATE OR REPLACE FUNCTION increment_download_count
+(target_shortcut_id uuid)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  UPDATE public.shortcuts
+  SET download_count = download_count + 1
+  WHERE id = target_shortcut_id;
 END;
 $$;

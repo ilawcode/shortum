@@ -6,8 +6,9 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { useEditorStore } from "@/store/useEditorStore";
 import { ActionCard } from "@/components/editor/ActionCard";
 import { CreditModal } from "@/components/editor/CreditModal";
+import { SimulatorModal } from "@/components/editor/SimulatorModal";
 import { useState } from "react";
-import { Check, Info } from "lucide-react";
+import { Check, Info, Play } from "lucide-react";
 
 const ALLOWED_ACTIONS = [
     { type: "com.apple.shortcuts.scripting.text", label: "Text", icon: "T" },
@@ -18,7 +19,7 @@ const ALLOWED_ACTIONS = [
 export default function EditorPage() {
     const { actions, errors, addAction, reorderActions } = useEditorStore();
     const [projectId, setProjectId] = useState<string | null>(null);
-
+    const [showSimulator, setShowSimulator] = useState(false);
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -61,6 +62,13 @@ export default function EditorPage() {
                     )}
                 </div>
                 <div className="flex items-center gap-4">
+                    <button
+                        onClick={() => setShowSimulator(true)}
+                        disabled={isSaveDisabled}
+                        className="px-4 py-2 rounded-lg text-sm font-medium bg-slate-500/20 hover:bg-slate-500/30 text-white transition-colors flex items-center gap-2"
+                    >
+                        <Play size={16} /> Run Simulator
+                    </button>
                     <button
                         disabled={isSaveDisabled}
                         className="px-4 py-2 rounded-lg text-sm font-medium bg-indigo-500 hover:bg-indigo-600 disabled:bg-indigo-500/50 disabled:cursor-not-allowed text-white transition-colors flex items-center gap-2"
@@ -107,6 +115,10 @@ export default function EditorPage() {
                     </div>
                 </GlassCard>
             </div>
+
+            {showSimulator && projectId && (
+                <SimulatorModal shortcutId={projectId} onClose={() => setShowSimulator(false)} />
+            )}
         </div>
     );
 }
