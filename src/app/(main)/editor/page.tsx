@@ -17,7 +17,8 @@ import {
 import { useEditorStore } from "@/store/useEditorStore";
 import { ActionCard } from "@/components/editor/ActionCard";
 import { SimulatorModal } from "@/components/editor/SimulatorModal";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Check,
   Play,
@@ -37,10 +38,11 @@ import { createClient } from "@/lib/supabase-client";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { ConfirmationModal } from "@/components/ui/ConfirmationModal";
+import { Suspense } from "react";
 
 const ICON_OPTIONS = ["⚡", "🚀", "🎯", "🔧", "🌐", "📱", "🔔", "📸", "🗺️", "🎵", "🤖", "✨", "🔐", "📊", "💡", "🎮"];
 
-export default function EditorPage() {
+function EditorContent() {
   const {
     actions,
     errors,
@@ -55,7 +57,12 @@ export default function EditorPage() {
     setShortcutTitle,
     setShortcutIcon,
     setShortcutDescription,
+    loadShortcut,
+    resetEditor,
   } = useEditorStore();
+
+  const searchParams = useSearchParams();
+  const idFromUrl = searchParams.get("id");
 
   const [showSimulator, setShowSimulator] = useState(false);
   const [showSaveConfirm, setShowSaveConfirm] = useState(false);
@@ -65,6 +72,37 @@ export default function EditorPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [editingTitle, setEditingTitle] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
+
+  useEffect(() => {
+    if (idFromUrl) {
+      const fetchShortcut = async () => {
+        const supabase = createClient();
+        const { data, error } = await supabase
+          .from("shortcuts")
+          .select("*")
+          .eq("id", idFromUrl)
+          .single();
+
+        if (error) {
+          toast.error("Failed to load shortcut data");
+          return;
+        }
+
+        if (data) {
+          loadShortcut(
+            data.id,
+            data.title,
+            data.icon || '⚡',
+            data.description || '',
+            data.content_json || []
+          );
+        }
+      };
+      fetchShortcut();
+    } else {
+      resetEditor();
+    }
+  }, [idFromUrl, loadShortcut, resetEditor]);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -397,5 +435,17 @@ export default function EditorPage() {
         isDanger={false}
       />
     </div>
+  );
+}
+
+export default function EditorPage() {
+  return (
+    <Suspense fallback={
+      <div className="h-screen w-full flex items-center justify-center bg-[#f1f5f9] dark:bg-[#1c2434]">
+        <Loader2 className="animate-spin text-[#3c50e0]" size={40} />
+      </div>
+    }>
+      <EditorContent />
+    </Suspense>
   );
 }
