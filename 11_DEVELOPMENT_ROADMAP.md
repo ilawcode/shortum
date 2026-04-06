@@ -1,53 +1,59 @@
-# 🗺️ ShortcutHub Geliştirme Yol Haritası (Development Roadmap)
+# 🗺️ ShortcutHub Geliştirme Yol Haritası & Git Flow Protokolü
 
-Bu doküman, projenin 0'dan yayına alınma sürecindeki kritik durakları ve Agent iş akışlarını belirler.
+Bu doküman, projenin modüler gelişimi için Agent'ların uyması gereken Git stratejisini ve görev sıralamasını belirler.
 
-## 🟢 FAZ 1: Altyapı ve Güvenlik (Hafta 1)
-**Hedef:** Veritabanı mimarisi, Auth sistemi ve Anti-Cheat koruması.
-
-1. **Setup:** `07_PROJECT_STRUCTURE_AND_BOILERPLATE.md` dosyasını temel alarak Next.js 15 projesini başlat.
-2. **Database:** `01_DATABASE_SCHEMA_FINAL.md` ile Supabase tablolarını (UUID ile) oluştur.
-3. **Security:** `09_SECURITY_AND_OWASP_RESOURCES.md` uyarınca Temp-mail engelleyici middleware ve Cloudflare Turnstile entegrasyonunu yap.
-4. **Kredi Mantığı:** Kayıt olan her kullanıcıya `is_verified` sonrası 10 kredi tanımlanmasını sağlayan Server Action'ı yaz.
-
-**✅ Başarı Kriteri:** Bir kullanıcı kayıt olup, e-postasını doğrulayıp dashboard'a girdiğinde 10 kredisini görebilmeli.
+## 🛠️ GIT ÇALIŞMA PROTOKOLÜ (HER GÖREV İÇİN ZORUNLU)
+Her Agent, bir FAZ veya GÖREV'e başlamadan önce şu adımları izlemelidir:
+1.  **Fetch & Pull:** `git checkout main` -> `git pull origin main` (En güncel kodu al).
+2.  **Branch Out:** `git checkout -b feature/[gorev-adi]` (Yeni bir dal oluştur).
+3.  **Develop:** Sadece ilgili `.md` dosyasındaki görevi yap.
+4.  **Push:** `git add .` -> `git commit -m "feat: [gorev detayı]"` -> `git push origin feature/[gorev-adi]`.
+5.  **Merge:** (Simüle et veya gerçekleştir) Feature branch'i `main`e birleştirildikten sonra bir sonraki göreve geç.
 
 ---
 
-## 🟡 FAZ 2: Görsel Kimlik ve Vitrin (Hafta 1.5)
-**Hedef:** Glassmorphism arayüz ve Keşfet sayfası.
-
-1. **Design:** `04_UI_UX_GUIDELINES.md` ve `06_UI_THEME_TOKENS.md` dosyalarına göre Tailwind konfigürasyonunu yap.
-2. **Layout:** Navbar (Bildirim widget'lı) ve Sidebar bileşenlerini oluştur.
-3. **Public Dashboard:** `02_API_ROUTES_AND_LOGIC.md` dosyasındaki `GET` rotalarını kullanarak halka açık kestirmeleri listeleyen Masonry Grid yapısını kur.
-
-**✅ Başarı Kriteri:** Mobil uyumlu, Dark/Light mode destekli, estetik bir ana sayfanın hazır olması.
+## 🟢 FAZ 1: Altyapı, Güvenlik & Auth
+**Branch:** `feature/infrastructure-and-auth`
+- **Dosyalar:** `01_DATABASE_SCHEMA_FINAL.md`, `07_PROJECT_STRUCTURE_AND_BOILERPLATE.md`, `09_SECURITY_AND_OWASP_RESOURCES.md`.
+- **Görev:** Next.js projesini kur, Supabase UUID şemasını bas, Temp-mail engelleyiciyi ve Auth sistemini (10 kredi mantığıyla) tamamla.
+- **Bitiş:** Kodu pushla ve `main`e birleştir.
 
 ---
 
-## 🔴 FAZ 3: Editör ve Validasyon (Hafta 2)
-**Hedef:** Sürükle-bırak editör ve Kredi tüketimi.
-
-1. **Editor Canvas:** `03_EDITOR_COMPONENT_ENGINE.md` dosyasındaki Whitelist aksiyonlarını kullanarak sürükle-bırak (dnd-kit) yapısını kur.
-2. **Logic Check:** `08_CORE_LOGIC_FUNCTIONS.md` dosyasındaki validasyon motorunu entegre et (Boş alan, tanımsız değişken hatası).
-3. **Save & Deduct:** Kullanıcı "Kaydet" dediğinde krediyi düşüren ve veriyi `jsonb` olarak kaydeden işlemi tamamla.
-
-**✅ Başarı Kriteri:** Kullanıcının aksiyonları dizip, hata almadan kaydedebilmesi ve kredisinin 1 azaldığını görmesi.
+## 🟡 FAZ 2: UI Shell & Design System
+**Branch:** `feature/ui-glassmorphism-shell`
+- **Dosyalar:** `04_UI_UX_GUIDELINES.md`, `06_UI_THEME_TOKENS.md`.
+- **Görev:** Tailwind & Glassmorphism kurulumu. Navbar, Sidebar ve Dashboard iskeletini (TR/EN desteğiyle) oluştur.
+- **Bitiş:** Kodu pushla ve `main`den tekrar `pull` yaparak bir sonraki aşamaya hazırlan.
 
 ---
 
-## 🔵 FAZ 4: Real-Time ve iOS Köprüsü (Hafta 2.5)
-**Hedef:** Bildirimler ve iPhone entegrasyonu.
-
-1. **Notifications:** `04_REALTIME_NOTIFICATION_WIDGET.md` uyarınca Supabase Realtime ve Resend e-posta akışlarını bağla (Özellikle Fork talepleri için).
-2. **Master Shortcut API:** `05_MASTER_SHORTCUT_IOS.md` ve `10_MASTER_SHORTCUT_ENGINE.md` dosyalarındaki mantıkla, UUID üzerinden JSON döndüren API ucunu güvenli hale getir.
-3. **Fork System:** Kullanıcılar arası fork talep/onay sistemini aktif et.
-
-**✅ Başarı Kriteri:** iPhone'daki "Master Shortcut"ın web'deki bir kestirmeyi başarıyla çekip çalıştırması.
+## 🔴 FAZ 3: Drag & Drop Editor Engine
+**Branch:** `feature/editor-core-engine`
+- **Dosyalar:** `03_EDITOR_COMPONENT_ENGINE.md`, `08_CORE_LOGIC_FUNCTIONS.md`.
+- **Görev:** `dnd-kit` entegrasyonu. Whitelist aksiyonlarını içeren canvas yapısı. Real-time validasyon motoru (Hatalı/Eksik giriş kontrolü).
+- **Kredi Entegrasyonu:** Editör açılışında kredi düşme ve onay modalı.
+- **Bitiş:** Kodu pushla ve `main`e birleştir.
 
 ---
 
-## 🏁 FAZ 5: Final & Test
-1. **OWASP Check:** Tüm inputların Whitelist kontrolünden geçtiğinden emin ol.
-2. **Multi-lang:** TR ve EN dil dosyalarını (next-intl) tüm arayüze yay.
-3. **Vercel Deploy:** Projeyi Vercel üzerinde production'a al.
+## 🔵 FAZ 4: Real-Time Bildirimler & Fork Sistemi
+**Branch:** `feature/notifications-and-forking`
+- **Dosyalar:** `04_REALTIME_NOTIFICATION_WIDGET.md`, `02_API_ROUTES_AND_LOGIC.md`.
+- **Görev:** Supabase Realtime ile uygulama içi bildirimler. Fork talebi oluşturma, onaylama ve otomatik klonlama mantığı. Resend e-posta tetikleyicileri.
+- **Bitiş:** Kodu pushla.
+
+---
+
+## 🟣 FAZ 5: Master Shortcut Bridge & iOS Engine
+**Branch:** `feature/ios-bridge-api`
+- **Dosyalar:** `05_MASTER_SHORTCUT_IOS.md`, `10_MASTER_SHORTCUT_ENGINE_SPEC.md`.
+- **Görev:** UUID üzerinden JSON döndüren `/api/s/[id]` public endpoint'i. Master Shortcut'ın veri çekme ve parse etme mantığının web tarafındaki simülasyonu.
+- **Bitiş:** Kodu pushla.
+
+---
+
+## 🏁 FAZ 6: QA, OWASP Check & Deployment
+**Branch:** `feature/final-optimization`
+- **Görev:** Tüm inputlarda Whitelist kontrolü (OWASP). Gereksiz console.log temizliği. Vercel deployment konfigürasyonu.
+- **Bitiş:** Tüm feature branchlerini kapat ve `main` üzerinden yayına al.
